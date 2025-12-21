@@ -1,10 +1,8 @@
 
 import {
     Drawer,
-    DrawerClose,
     DrawerContent,
     DrawerDescription,
-    DrawerFooter,
     DrawerHeader,
     DrawerTitle,
     DrawerTrigger,
@@ -36,7 +34,7 @@ function Header() {
                                 <FileUpIcon /> Carica un nuovo portfolio
                             </Button>
                             <Separator className="my-4" />
-                             <div>Prezzi aggiornati 22 minuti fa</div>
+                            <div>Prezzi aggiornati 22 minuti fa</div>
                             <Button variant="outline" size="sm" aria-label="Submit">
                                 <RefreshCcwIcon /> Aggiorna i prezzi
                             </Button>
