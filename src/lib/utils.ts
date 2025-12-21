@@ -8,3 +8,14 @@ export function cn(...inputs: ClassValue[]) {
 export function formatPrice(price: number) {
   return `${(price).toFixed(2)} €`
 }
+
+export function assetClassCategoryToString(assetClassCategory: string) {
+  switch (assetClassCategory) {
+    case "stocks":
+      return "azioni"
+    case "bonds":
+      return "obbligazioni"
+    default:
+      return assetClassCategory
+  }
+}

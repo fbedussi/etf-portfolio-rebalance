@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/card"
 import { RefreshCcwIcon } from "lucide-react"
 import { Button } from "./ui/button"
-import { useStore, selectCurrentPortfolioValue, selectCurrentPortfolioCost, selectPriceUpdateTime } from "@/store"
+import { useStore, useCurrentPortfolioValue, useCurrentPortfolioCost, usePriceUpdateTime } from "@/store"
 import { formatPrice } from "@/lib/utils"
 import { useEffect, useState } from "react"
 
@@ -19,14 +19,14 @@ export function ValueCard() {
   const [refresh, setRefresh] = useState(0)
   useEffect(() => {
     setTimeout(() => {
-      setRefresh(counter => counter+1)
+      setRefresh(counter => counter + 1)
     }, 60000)
   })
-  const currentValue = useStore(selectCurrentPortfolioValue)
-  const cost = useStore(selectCurrentPortfolioCost)
+  const currentValue = useCurrentPortfolioValue()
+  const cost = useCurrentPortfolioCost()
   const variation = (currentValue - cost) / cost * 100
   const isIncreasing = variation > 0
-  const updateTime = useStore(selectPriceUpdateTime)
+  const updateTime = usePriceUpdateTime()
 
   return (
     <Card className="@container/card" key={refresh}>
@@ -38,7 +38,7 @@ export function ValueCard() {
         <CardAction>
           <Badge variant="outline" className={`${isIncreasing ? 'bg-green-500' : 'bg-red-500 text-white'}`}>
             {isIncreasing ? <IconTrendingUp /> : <IconTrendingDown />}
-            {isIncreasing ? '+': ''}{variation.toFixed(2)}%
+            {isIncreasing ? '+' : ''}{variation.toFixed(2)}%
           </Badge>
         </CardAction>
       </CardHeader>

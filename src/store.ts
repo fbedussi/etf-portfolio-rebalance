@@ -1,13 +1,14 @@
 import { create } from 'zustand'
-import type { CurrentPrices, Portfolio } from './model'
+import type { AssetClassCategory, CurrentPrices, Portfolio } from './model'
 import { devtools } from 'zustand/middleware'
+import { useShallow } from 'zustand/shallow'
 
-type Store = {
+type State = {
     portfolio: Portfolio | null
     prices: CurrentPrices
 }
 
-export const useStore = create<Store>()(devtools(() => ({
+export const useStore = create<State>()(devtools(() => ({
     portfolio: null,
     prices: {}
 })))
@@ -24,9 +25,9 @@ export const setPrice = (isin: string, price: number) => useStore.setState(state
     }
 }))
 
-export const selectPortfolioName = (state: Store) => state.portfolio?.name || ''
+export const usePortfolioName = () => useStore((state: State) => state.portfolio?.name || '')
 
-export const selectCurrentPortfolioCost = (state: Store) => {
+export const useCurrentPortfolioCost = () => useStore((state: State) => {
     const quantities = Object.values(state.portfolio?.etfs || {}).reduce((result, etf) => {
         result[etf.isin] = etf.transactions.reduce((cost, transaction) => cost + transaction.quantity * transaction.price, 0)
         return result
@@ -35,9 +36,9 @@ export const selectCurrentPortfolioCost = (state: Store) => {
     const value = Object.values(quantities).reduce((result, cost) => result += cost, 0)
 
     return value
-}
+})
 
-export const selectCurrentPortfolioValue = (state: Store) => {
+const selectCurrentPortfolioValue = (state: State) => {
     const quantities = Object.values(state.portfolio?.etfs || {}).reduce((result, etf) => {
         result[etf.isin] = etf.transactions.reduce((quantity, transaction) => quantity + transaction.quantity, 0)
         return result
@@ -48,7 +49,9 @@ export const selectCurrentPortfolioValue = (state: Store) => {
     return value
 }
 
-export const selectPriceUpdateTime = (state: Store) => {
+export const useCurrentPortfolioValue = () => useStore(selectCurrentPortfolioValue)
+
+export const usePriceUpdateTime = () => useStore((state: State) => {
     const oldestTimestamp = Object.values(state.prices).reduce((result, price) => {
         const timestamp = new Date(price.timestamp).getTime()
         return result === null || timestamp < result ? timestamp : result
@@ -90,4 +93,26 @@ export const selectPriceUpdateTime = (state: Store) => {
 
     const years = Math.floor(months / 12)
     return `${years} anni fa`
+})
+
+export const useMaxDrift = () => useStore((state: State) => state.portfolio?.maxDrift || 0)
+
+const selectCurrentDrift = (state: State) => {
+    const currentPortfolioValue = selectCurrentPortfolioValue(state)
+    const currentDriftByAssetClass = Object.entries(state.portfolio?.targetAllocation || {}).reduce((result, [assetClass, percentage]) => {
+        const targetAssetClassValue = currentPortfolioValue * percentage / 100
+        const currentAssetClassValue = Object.values(state.portfolio?.etfs || {})
+            .filter(etf => etf.assetClass.category === assetClass)
+            .map(etf => {
+                const quantity = etf.transactions.reduce((sum, { quantity }) => sum += quantity, 0)
+                return quantity * state.prices[etf.isin].price
+            })
+            .reduce((sum, price) => sum += price, 0)
+        result[assetClass] = (currentAssetClassValue - targetAssetClassValue) / targetAssetClassValue * 100
+        return result
+    }, {} as Record<AssetClassCategory, number>)
+
+    return currentDriftByAssetClass
 }
+
+export const useCurrentDrift = () => useStore(useShallow(selectCurrentDrift))
