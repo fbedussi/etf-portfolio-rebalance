@@ -9,37 +9,13 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import { CircleAlertIcon, MoveDownIcon, MoveUpIcon, RefreshCcwIcon } from "lucide-react"
-import { Button } from "./ui/button"
+import { CircleAlertIcon, MoveDownIcon, MoveUpIcon } from "lucide-react"
+import { ValueCard } from "./value-card"
 
 export function SectionCards() {
   return (
     <div className="*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-1 gap-4 px-4 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs lg:px-6 @xl/main:grid-cols-2">
-      <Card className="@container/card">
-        <CardHeader>
-          <CardDescription>Valore totale</CardDescription>
-          <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-            €3.981,65
-          </CardTitle>
-          <CardAction>
-            <Badge variant="outline">
-              <IconTrendingUp />
-              +12.5%
-            </Badge>
-          </CardAction>
-        </CardHeader>
-        <CardFooter className="flex-col items-start gap-1.5 text-sm">
-          <div className="line-clamp-1 flex gap-2 font-medium text-muted-foreground">
-            Costo: <span className="text-primary">€3.999,00</span>
-          </div>
-          <div className="line-clamp-1 flex gap-2 font-medium text-muted-foreground items-center justify-between w-full">
-            <span>Dati aggiornati a <span className="text-primary">2 minuti fa</span></span>
-            <Button size="icon" variant="outline">
-              <RefreshCcwIcon />
-            </Button>
-          </div>
-        </CardFooter>
-      </Card>
+      <ValueCard />
       <Card className="@container/card">
         <CardHeader>
           <CardDescription>Drift massimo 10%</CardDescription>

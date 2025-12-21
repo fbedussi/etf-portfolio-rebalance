@@ -5,8 +5,50 @@ import { SiteHeader } from "@/components/site-header"
 import {
   SidebarProvider,
 } from "@/components/ui/sidebar"
+import { setPortfolio, setPrice } from "./store"
 
 export default function App() {
+  setPortfolio({
+    name: 'Fra2',
+    targetAllocation: {
+      stocks: 50,
+      bonds: 50,
+    },
+    etfs: {
+      IE00B4L5Y983: {
+        isin: 'IE00B4L5Y983',
+        name: 'iShares Core MSCI World UCITS',
+        assetClasses: [{
+          name: "Global developed stocks markets",
+          category: "stocks",
+          percentage: 100,
+        }],
+        transactions: [{
+          date: "2025-10-28",
+          quantity: 14,
+          price: 111,
+        }],
+      },
+      LU0478205379: {
+        isin: 'LU0478205379',
+        name: 'Xtrackers II EUR Corporate Bond UCITS ETF 1C',
+        assetClasses: [{
+          name: "Eur Corporate Bonds",
+          category: "bonds",
+          percentage: 100,
+        }],
+        transactions: [{
+          date: "2024-11-15",
+          quantity: 15,
+          price: 163,
+        }],
+      }
+    },
+  })
+
+  setPrice('IE00B4L5Y983', 100)
+  setPrice('LU0478205379', 190)
+  
   return (
     <SidebarProvider
       style={

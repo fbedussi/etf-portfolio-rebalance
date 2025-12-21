@@ -1,0 +1,93 @@
+import { create } from 'zustand'
+import type { CurrentPrices, Portfolio } from './model'
+import { devtools } from 'zustand/middleware'
+
+type Store = {
+    portfolio: Portfolio | null
+    prices: CurrentPrices
+}
+
+export const useStore = create<Store>()(devtools(() => ({
+    portfolio: null,
+    prices: {}
+})))
+
+export const setPortfolio = (portfolio: Portfolio) => useStore.setState({ portfolio })
+
+export const setPrice = (isin: string, price: number) => useStore.setState(state => ({
+    prices: {
+        ...state.prices,
+        [isin]: {
+            price,
+            timestamp: new Date().toISOString()
+        },
+    }
+}))
+
+export const selectPortfolioName = (state: Store) => state.portfolio?.name || ''
+
+export const selectCurrentPortfolioCost = (state: Store) => {
+    const quantities = Object.values(state.portfolio?.etfs || {}).reduce((result, etf) => {
+        result[etf.isin] = etf.transactions.reduce((cost, transaction) => cost + transaction.quantity * transaction.price, 0)
+        return result
+    }, {} as Record<string, number>/*isin, cost*/)
+
+    const value = Object.values(quantities).reduce((result, cost) => result += cost, 0)
+
+    return value
+}
+
+export const selectCurrentPortfolioValue = (state: Store) => {
+    const quantities = Object.values(state.portfolio?.etfs || {}).reduce((result, etf) => {
+        result[etf.isin] = etf.transactions.reduce((quantity, transaction) => quantity + transaction.quantity, 0)
+        return result
+    }, {} as Record<string, number>/*isin, quantity*/)
+
+    const value = Object.entries(quantities).reduce((result, [isin, quantity]) => result += state.prices[isin].price * quantity, 0)
+
+    return value
+}
+
+export const selectPriceUpdateTime = (state: Store) => {
+    const oldestTimestamp = Object.values(state.prices).reduce((result, price) => {
+        const timestamp = new Date(price.timestamp).getTime()
+        return result === null || timestamp < result ? timestamp : result
+    }, null as number | null)
+
+    if (oldestTimestamp === null) {
+        return "mai"
+    }
+
+    const minutes = Math.floor((new Date().getTime() - oldestTimestamp) / 60000)
+
+    if (minutes === 0) {
+        return 'ora'
+    }
+
+    if (minutes < 60) {
+        return `${minutes} minuti fa`
+    }
+
+    const hours = Math.floor(minutes / 60)
+    if (hours < 24) {
+        return `${hours} ore fa`
+    }
+
+    const days = Math.floor(hours / 24)
+    if (days < 7) {
+        return `${days} giorni fa`
+    }
+
+    const weeks = Math.floor(days / 7)
+    if (weeks < 52) {
+        return `${weeks} settimane fa`
+    }
+
+    const months = Math.floor(weeks / 4)
+    if (months < 12) {
+        return `${months} mesi fa`
+    }
+
+    const years = Math.floor(months / 12)
+    return `${years} anni fa`
+}
