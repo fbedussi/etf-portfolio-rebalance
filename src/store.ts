@@ -15,12 +15,13 @@ export const useStore = create<State>()(devtools(() => ({
 
 export const setPortfolio = (portfolio: Portfolio) => useStore.setState({ portfolio })
 
-export const setPrice = (isin: string, price: number) => useStore.setState(state => ({
+export const setPrice = (isin: string, price: number, history: {price: number, date: string}[]) => useStore.setState(state => ({
     prices: {
         ...state.prices,
         [isin]: {
             price,
-            timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString(),
+            history,
         },
     }
 }))

@@ -28,7 +28,7 @@ function Row({ row }: { row: Schema }) {
 
   return (
     <TableRow className="relative z-0">
-      <TableCell>{row.name}</TableCell>
+      <TableCell><a href={`https://www.borsaitaliana.it/borsa/etf/scheda/${row.isin}.html?lang=it`} target='_blank'>{row.name}</a></TableCell>
       <TableCell>{row.isin}</TableCell>
       <TableCell><Badge variant="outline" className={`text-white px-1.5 bg-${colors[row.assetClass]}`}>{assetClassCategoryToString(row.assetClass)}</Badge></TableCell>
       <TableCell>{row.quantity}</TableCell>

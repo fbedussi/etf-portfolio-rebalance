@@ -45,8 +45,8 @@ export default function App() {
     },
   })
 
-  setPrice('IE00B4L5Y983', 100)
-  setPrice('LU0478205379', 190)
+  setPrice('IE00B4L5Y983', 100, [{price: 100, date: "2025-12-22"}])
+  setPrice('LU0478205379', 190, [{price: 190, date: "2025-12-22"}])
 
   return (
     <SidebarProvider
