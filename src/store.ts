@@ -25,6 +25,10 @@ export const setPrice = (isin: string, price: number) => useStore.setState(state
     }
 }))
 
+export const usePortfolio = () => useStore((state: State) => state.portfolio)
+
+export const usePrices = () => useStore((state: State) => state.prices)
+
 export const usePortfolioName = () => useStore((state: State) => state.portfolio?.name || '')
 
 export const useCurrentPortfolioCost = () => useStore((state: State) => {
@@ -116,3 +120,38 @@ const selectCurrentDrift = (state: State) => {
 }
 
 export const useCurrentDrift = () => useStore(useShallow(selectCurrentDrift))
+
+export const useTargetAllocation = () => useStore((state: State) => state.portfolio?.targetAllocation || {})
+
+const selectCurrentAllocation = (state: State) => {
+    const currentPortfolioValue = selectCurrentPortfolioValue(state)
+    const currentAssetClassValue = Object.values(state.portfolio?.etfs || {})
+        .reduce((result, etf) => {
+            const quantity = etf.transactions.reduce((sum, { quantity }) => sum += quantity, 0)
+            result[etf.assetClass.category] = (result[etf.assetClass.category] || 0) + quantity * state.prices[etf.isin].price
+            return result
+        }, {} as Record<AssetClassCategory, number>)
+
+    const currentAllocationByAssetClass = Object.entries(currentAssetClassValue).reduce((result, [assetClass, value]) => {
+        result[assetClass] = value / currentPortfolioValue * 100
+        return result
+    }, {} as Record<AssetClassCategory, number>)
+
+    return currentAllocationByAssetClass
+}
+
+export const useCurrentAllocation = () => useStore(useShallow(selectCurrentAllocation))
+
+export const useAssetClassColoros = () => useStore(useShallow((state: State) => {
+    const targetAssetClasses = Object.keys(state.portfolio?.targetAllocation || {})
+    const currentAssetClasses = Object.values(state.portfolio?.etfs || {}).map(etf => etf.assetClass.category)
+
+    const assetClasses = [...new Set(targetAssetClasses.concat(currentAssetClasses))]
+
+    const colors = assetClasses.reduce((result, assetClass, index) => {
+        result[assetClass] = `chart-${index + 1}`
+        return result
+    }, {} as Record<AssetClassCategory, string>)
+
+    return colors
+}))

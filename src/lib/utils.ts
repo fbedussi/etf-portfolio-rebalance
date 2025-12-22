@@ -5,8 +5,12 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-export function formatPrice(price: number) {
-  return `${(price).toFixed(2)} €`
+const moneyFormatter = new Intl.NumberFormat('it-IT', {
+  style: 'currency',
+  currency: 'EUR',
+})
+export function formatMoney(price: number) {
+  return moneyFormatter.format(price)
 }
 
 export function assetClassCategoryToString(assetClassCategory: string) {

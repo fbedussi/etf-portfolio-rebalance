@@ -7,6 +7,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { assetClassCategoryToString, formatMoney } from "@/lib/utils"
+import { useAssetClassColoros, usePortfolio, usePrices } from "@/store"
 
 type Schema = {
   name: string,
@@ -18,42 +20,41 @@ type Schema = {
 }
 
 function Row({ row }: { row: Schema }) {
+  const colors = useAssetClassColoros()
+
   const currentValue = row.currentPrice * row.quantity
   const valuePaid = row.paidPrice * row.quantity
   const currentValueProfit = currentValue - valuePaid
+
   return (
     <TableRow className="relative z-0">
       <TableCell>{row.name}</TableCell>
       <TableCell>{row.isin}</TableCell>
-      <TableCell><Badge variant="outline" className={`text-white px-1.5 ${row.assetClass === 'stocks' ? 'bg-chart-2' : 'bg-chart-1'}`}>{row.assetClass}</Badge></TableCell>
+      <TableCell><Badge variant="outline" className={`text-white px-1.5 bg-${colors[row.assetClass]}`}>{assetClassCategoryToString(row.assetClass)}</Badge></TableCell>
       <TableCell>{row.quantity}</TableCell>
-      <TableCell>{(valuePaid).toFixed(2)} €</TableCell>
-      <TableCell>{(currentValue).toFixed(2)} €</TableCell>
+      <TableCell>{formatMoney(valuePaid)}</TableCell>
+      <TableCell>{formatMoney(currentValue)}</TableCell>
       <TableCell><Badge variant="outline" className={`px-1.5 ${currentValueProfit > 0 ? 'bg-green-500' : 'bg-red-500 text-white'}`}>{(currentValueProfit).toFixed(2)} €</Badge></TableCell>
     </TableRow>
   )
 }
 
-const data = [
-  {
-    name: 'x-tracker MCI world',
-    isin: '29218312983',
-    assetClass: 'stocks',
-    quantity: 14,
-    paidPrice: 10,
-    currentPrice: 9
-  },
-   {
-    name: 'iShares corporate bond',
-    isin: 'sdfs98fs09',
-    assetClass: 'bonds',
-    quantity: 140,
-    paidPrice: 8,
-    currentPrice: 11
-  }
-]
-
 export function DataTable() {
+  const portfolio = usePortfolio()
+  const prices = usePrices()
+
+  const data = (Object.values(portfolio?.etfs || {})).map(etf => {
+    const quantity = etf.transactions.reduce((sum, { quantity }) => sum += quantity, 0)
+    return {
+      name: etf.name,
+      isin: etf.isin,
+      assetClass: etf.assetClass.category,
+      quantity,
+      paidPrice: etf.transactions.reduce((sum, { quantity, price }) => sum += quantity * price, 0),
+      currentPrice: quantity * (prices[etf.isin].price || 0)
+    }
+  })
+
   return (
     <div className="relative flex flex-col gap-4 overflow-auto px-4 lg:px-6">
       <div className="overflow-hidden rounded-lg border">
