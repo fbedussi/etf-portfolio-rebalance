@@ -6,47 +6,66 @@ import {
   SidebarProvider,
 } from "@/components/ui/sidebar"
 import { setPortfolio, setPrice } from "./store"
+import { useEffect, useRef } from "react"
+import { getPortfolios, savePortfolio } from "./services/cacheService"
 
 export default function App() {
-  setPortfolio({
-    name: 'Fra2',
-    targetAllocation: {
-      stocks: 50,
-      bonds: 50,
-    },
-    maxDrift: 10,
-    etfs: {
-      IE00B4L5Y983: {
-        isin: 'IE00B4L5Y983',
-        name: 'iShares Core MSCI World UCITS',
-        assetClass: {
-          name: "Global developed stocks markets",
-          category: "stocks",
-        },
-        transactions: [{
-          date: "2025-10-28",
-          quantity: 14,
-          price: 111,
-        }],
-      },
-      LU0478205379: {
-        isin: 'LU0478205379',
-        name: 'Xtrackers II EUR Corporate Bond UCITS ETF 1C',
-        assetClass: {
-          name: "Eur Corporate Bonds",
-          category: "bonds",
-        },
-        transactions: [{
-          date: "2024-11-15",
-          quantity: 15,
-          price: 163,
-        }],
-      }
-    },
-  })
+  const loadingPortfolio = useRef(false)
 
-  setPrice('IE00B4L5Y983', 100, [{price: 100, date: "2025-12-22"}])
-  setPrice('LU0478205379', 190, [{price: 190, date: "2025-12-22"}])
+  useEffect(() => {
+    if (loadingPortfolio.current) return
+
+    loadingPortfolio.current = true
+
+    getPortfolios().then(cachedPortfolios => {
+      if (cachedPortfolios.length) {
+        setPortfolio(cachedPortfolios[0])
+      } else {
+        const demoPortfolio = {
+          name: 'Fra2',
+          targetAllocation: {
+            stocks: 50,
+            bonds: 50,
+          },
+          maxDrift: 10,
+          etfs: {
+            IE00B4L5Y983: {
+              isin: 'IE00B4L5Y983',
+              name: 'iShares Core MSCI World UCITS',
+              assetClass: {
+                name: "Global developed stocks markets",
+                category: "stocks",
+              },
+              transactions: [{
+                date: "2025-10-28",
+                quantity: 14,
+                price: 111,
+              }],
+            },
+            LU0478205379: {
+              isin: 'LU0478205379',
+              name: 'Xtrackers II EUR Corporate Bond UCITS ETF 1C',
+              assetClass: {
+                name: "Eur Corporate Bonds",
+                category: "bonds",
+              },
+              transactions: [{
+                date: "2024-11-15",
+                quantity: 15,
+                price: 163,
+              }],
+            }
+          },
+        }
+        savePortfolio(demoPortfolio)
+        setPortfolio(demoPortfolio)
+      }
+    })
+  }, [])
+
+
+  setPrice('IE00B4L5Y983', 100, [{ price: 100, date: "2025-12-22" }])
+  setPrice('LU0478205379', 190, [{ price: 190, date: "2025-12-22" }])
 
   return (
     <SidebarProvider

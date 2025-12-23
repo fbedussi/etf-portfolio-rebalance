@@ -32,8 +32,8 @@ export type Transaction = {
 export type CurrentPrices = Record<Isin, {
   price: number
   timestamp: IsoDate
-  history: {price: number, date: string}[]
-}> 
+  history: { price: number, date: string }[]
+}>
 
 export type ApiResponse = {
   intradayPoint: IntradayPoint[]

@@ -122,7 +122,7 @@ const selectCurrentDrift = (state: State) => {
 
 export const useCurrentDrift = () => useStore(useShallow(selectCurrentDrift))
 
-export const useTargetAllocation = () => useStore((state: State) => state.portfolio?.targetAllocation || {})
+export const useTargetAllocation = () => useStore(useShallow((state: State) => state.portfolio?.targetAllocation || {}))
 
 const selectCurrentAllocation = (state: State) => {
     const currentPortfolioValue = selectCurrentPortfolioValue(state)
