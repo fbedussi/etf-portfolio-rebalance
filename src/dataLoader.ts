@@ -66,7 +66,7 @@ export function useLoadPrices() {
 
     useEffect(() => {
         isins.forEach(async isin => {
-            debugger
+
             const cachedData = await Cache.getCurrentPrices(isin)
 
             const handleError = (error: Error) => {
