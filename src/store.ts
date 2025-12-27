@@ -6,11 +6,12 @@ import { useShallow } from 'zustand/shallow'
 type State = {
     portfolio: Portfolio | null
     prices: CurrentPrices
+    refreshPrices?: boolean
 }
 
 export const useStore = create<State>()(devtools(() => ({
     portfolio: null,
-    prices: {}
+    prices: {},
 })))
 
 export const setPortfolio = (portfolio: Portfolio) => useStore.setState({ portfolio })
@@ -25,6 +26,8 @@ export const setPrice = (isin: string, price: number, history: {price: number, d
         },
     }
 }))
+
+export const setRefreshPrices = (refreshPrices: boolean) => useStore.setState({ refreshPrices })
 
 export const usePortfolio = () => useStore((state: State) => state.portfolio)
 
@@ -54,51 +57,20 @@ const selectCurrentPortfolioValue = (state: State) => {
     return value
 }
 
+const selectCurrentPortfolioValueDate = (state: State) => {
+    const date = Object.values(state.portfolio?.etfs || {}).reduce((result, etf) => {
+        const lastDateStr = state.prices[etf.isin]?.history.at(-1)?.date
+        const lastDate = lastDateStr ? new Date(lastDateStr) : null
+
+        return !result || (lastDate && lastDate > result) ? lastDate : result
+    }, null as null | Date)
+    return date
+}
+
 export const useCurrentPortfolioValue = () => useStore(selectCurrentPortfolioValue)
 
-export const usePriceUpdateTime = () => useStore((state: State) => {
-    const oldestTimestamp = Object.values(state.prices).reduce((result, price) => {
-        const timestamp = new Date(price.timestamp).getTime()
-        return result === null || timestamp < result ? timestamp : result
-    }, null as number | null)
+export const useCurrentPortfolioValueDate = () => useStore(useShallow(selectCurrentPortfolioValueDate))
 
-    if (oldestTimestamp === null) {
-        return "mai"
-    }
-
-    const minutes = Math.floor((new Date().getTime() - oldestTimestamp) / 60000)
-
-    if (minutes === 0) {
-        return 'ora'
-    }
-
-    if (minutes < 60) {
-        return `${minutes} minuti fa`
-    }
-
-    const hours = Math.floor(minutes / 60)
-    if (hours < 24) {
-        return `${hours} ore fa`
-    }
-
-    const days = Math.floor(hours / 24)
-    if (days < 7) {
-        return `${days} giorni fa`
-    }
-
-    const weeks = Math.floor(days / 7)
-    if (weeks < 52) {
-        return `${weeks} settimane fa`
-    }
-
-    const months = Math.floor(weeks / 4)
-    if (months < 12) {
-        return `${months} mesi fa`
-    }
-
-    const years = Math.floor(months / 12)
-    return `${years} anni fa`
-})
 
 export const useMaxDrift = () => useStore((state: State) => state.portfolio?.maxDrift || 0)
 
@@ -156,3 +128,5 @@ export const useAssetClassColors = () => useStore(useShallow((state: State) => {
 
     return colors
 }))
+
+export const useRefreshPrices = () => useStore((state: State) => state.refreshPrices)

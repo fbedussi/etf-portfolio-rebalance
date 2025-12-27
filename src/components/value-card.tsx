@@ -11,29 +11,22 @@ import {
 } from "@/components/ui/card"
 import { RefreshCcwIcon } from "lucide-react"
 import { Button } from "./ui/button"
-import { useCurrentPortfolioValue, useCurrentPortfolioCost, usePriceUpdateTime } from "@/store"
-import { formatMoney } from "@/lib/utils"
-import { useEffect, useState } from "react"
+import { useCurrentPortfolioValue, useCurrentPortfolioCost, useCurrentPortfolioValueDate, setRefreshPrices } from "@/store"
+import { formatDate, formatMoney } from "@/lib/utils"
 
 export function ValueCard() {
-  const [refresh, setRefresh] = useState(0)
-  useEffect(() => {
-    setTimeout(() => {
-      setRefresh(counter => counter + 1)
-    }, 60000)
-  })
-  const currentValue = useCurrentPortfolioValue()
+  const value = useCurrentPortfolioValue()
+  const date = useCurrentPortfolioValueDate()
   const cost = useCurrentPortfolioCost()
-  const variation = (currentValue - cost) / cost * 100
+  const variation = (value - cost) / cost * 100
   const isIncreasing = variation > 0
-  const updateTime = usePriceUpdateTime()
 
   return (
-    <Card className="@container/card" key={refresh}>
+    <Card className="@container/card">
       <CardHeader>
         <CardDescription>Valore totale</CardDescription>
         <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-          {formatMoney(currentValue)}
+          {formatMoney(value)}
         </CardTitle>
         <CardAction>
           <Badge variant="outline" className={`${isIncreasing ? 'bg-green-500' : 'bg-red-500 text-white'}`}>
@@ -47,8 +40,10 @@ export function ValueCard() {
           Costo: <span className="text-primary">{formatMoney(cost)}</span>
         </div>
         <div className="line-clamp-1 flex gap-2 font-medium text-muted-foreground items-center justify-between w-full">
-          <span>Dati aggiornati a <span className="text-primary">{updateTime}</span></span>
-          <Button size="icon" variant="outline">
+          {!!date && <span>Dati aggiornati al <span className="text-primary">{formatDate(date)}</span></span>}
+          <Button size="icon" variant="outline" onClick={() => {
+            setRefreshPrices(true)
+          }}>
             <RefreshCcwIcon />
           </Button>
         </div>

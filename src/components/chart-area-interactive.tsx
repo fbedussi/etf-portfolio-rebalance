@@ -32,12 +32,7 @@ export function ChartAreaInteractive() {
 
   const chartData = Object.values(prices).reduce((result, { history }) => {
     history.forEach(({ date, price }) => {
-      const [part1, part2] = date.split('-')
-      const year = part1.substring(0, 4)
-      const month = part1.substring(4, 6)
-      const day = part1.substring(6, 8)
-      const isoDate = `${year}-${month}-${day}T${part2}Z`
-      result[isoDate] = (result[date] || 0) + price
+      result[date] = (result[date] || 0) + price
     })
     return result
   }, {} as Record<string, number>)

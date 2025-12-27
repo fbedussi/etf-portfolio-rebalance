@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef } from "react";
 import * as Store from "./store";
 import * as Cache from "./services/cacheService"
 import * as Api from "./services/apiService"
+import { convertDt } from "./lib/utils";
 
 const ONE_DAY = 24 * 60 * 60 * 1000
 
@@ -61,13 +62,21 @@ export function useLoadPortfolio() {
 }
 export function useLoadPrices() {
     const portfolio = Store.usePortfolio()
+    const refreshPrices = Store.useRefreshPrices()
 
     const isins = useMemo(() => Object.keys(portfolio?.etfs || {}), [portfolio])
 
     useEffect(() => {
+        if (refreshPrices === false) {
+            // refreshPrices is undefined when the component is mounted
+            // true when the user clicks the refresh button
+            // false after the prices have been refreshed
+            return
+        }
+
         isins.forEach(async isin => {
 
-            const cachedData = await Cache.getCurrentPrices(isin)
+            const cachedData = !refreshPrices && await Cache.getCurrentPrices(isin)
 
             const handleError = (error: Error) => {
                 // TODO: handle error in the store
@@ -77,7 +86,7 @@ export function useLoadPrices() {
                 }
             }
 
-            if (cachedData && (new Date(cachedData.timestamp).getTime() - Date.now() < ONE_DAY)) {
+            if (!refreshPrices && cachedData && (new Date(cachedData.timestamp).getTime() - Date.now() < ONE_DAY)) {
                 Store.setPrice(isin, cachedData.price, cachedData.history)
             } else {
                 const freshData = await Api.getPrices(isin)
@@ -85,9 +94,9 @@ export function useLoadPrices() {
                 if ('error' in freshData) {
                     handleError(freshData.error)
                 } else {
-                    const history = freshData.data.intradayPoint.map(item => ({
-                        price: item.endPx,
-                        date: item.time,
+                    const history = freshData.data.history.historyDt.map(item => ({
+                        price: item.closePx,
+                        date: convertDt(item.dt),
                     }))
 
                     const lastPrice = history.at(-1)
@@ -100,7 +109,9 @@ export function useLoadPrices() {
                     Cache.saveCurrentPrices({ [isin]: { price: lastPrice.price, timestamp, history } })
                     Store.setPrice(isin, lastPrice.price, history)
                 }
+
+                Store.setRefreshPrices(false)
             }
         })
-    }, [isins])
+    }, [isins, refreshPrices])
 }   

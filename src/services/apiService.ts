@@ -11,7 +11,7 @@ export function getPrices(isin: string): Promise<ApiResponse<PricesApiResponse>>
 
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), TIMEOUT);
-    const promise = fetch(`https://grafici.borsaitaliana.it/api/instruments/${isin},XMIL,ISIN/intraday?resolution=1MN`, {
+    const promise = fetch(`https://grafici.borsaitaliana.it/api/instruments/${isin},XMIL,ISIN/history/period?period=1Y&adjustment=true&add-last-price=true`, {
         headers: {
             authorization: `Bearer ${import.meta.env.VITE_API_TOKEN}`,
         },

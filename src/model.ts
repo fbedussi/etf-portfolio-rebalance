@@ -38,15 +38,40 @@ export type CurrentPrices = Record<Isin, {
 export type ApiResponse<T> = {data: T} | {error: Error}
 
 export type PricesApiResponse = {
-  intradayPoint: IntradayPoint[]
+  transco: {
+    code: string
+    codification: string
+    exchCode: string
+  }
+  history: History
   status: number,
   entityID: string,
   view: string,
-  sessionQuality: string,
-  currency: string,
-  accuracy: number,
+  beginningDate: string,
+  endingDate: string,
+  period: string,
   tickSizeRule: string,
-  label: string,
+  adjustement: boolean,
+  addDayLastPrice: boolean
+}
+
+export type History = {
+  historyDt: {
+    dt: string // e.g., "20251208"
+    openPx: number
+    closePx: number
+    highPx: number
+    lowPx: number
+    lastPx: number
+    qty: number
+    volNbTrade: number
+    volCap: number
+    setPx: number
+    tickSizeRule: string
+    vwap: number
+  }[]
+  accuracy: number
+  currency: string
   instrType: string
 }
 
