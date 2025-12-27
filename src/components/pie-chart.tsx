@@ -15,14 +15,14 @@ import {
     type ChartConfig,
 } from "@/components/ui/chart"
 import { AssetAllocationTable } from "./asset-allocation-table"
-import { useAssetClassColoros, useCurrentAllocation, useTargetAllocation } from "@/store"
+import { useAssetClassColors, useCurrentAllocation, useTargetAllocation } from "@/store"
 import type { AssetClassCategory } from "@/model"
 import { assetClassCategoryToString } from "@/lib/utils"
 
 export function ChartPie() {
     const targetAllocation = useTargetAllocation()
     const currentAllocation = useCurrentAllocation()
-    const colors = useAssetClassColoros()
+    const colors = useAssetClassColors()
 
     const assetClasses = [...new Set(Object.keys(targetAllocation).concat(Object.keys(currentAllocation)))]
 

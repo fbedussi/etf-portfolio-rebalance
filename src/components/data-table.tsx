@@ -8,31 +8,30 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { assetClassCategoryToString, formatMoney } from "@/lib/utils"
-import { useAssetClassColoros, usePortfolio, usePrices } from "@/store"
+import { useAssetClassColors, usePortfolio, usePrices } from "@/store"
 
-type Schema = {
+
+function Row({ name, isin, assetClass, quantity, paidValue, currentValue }: {
   name: string,
   isin: string,
   assetClass: string,
   quantity: number,
-  paidPrice: number,
-  currentPrice: number
-}
+  paidValue: number,
+  currentValue: number
+}) {
+  const colors = useAssetClassColors()
 
-function Row({ row }: { row: Schema }) {
-  const colors = useAssetClassColoros()
+  const currentValueProfit = currentValue - paidValue
 
-  const currentValue = row.currentPrice * row.quantity
-  const valuePaid = row.paidPrice * row.quantity
-  const currentValueProfit = currentValue - valuePaid
+  let color = colors[assetClass]
 
   return (
     <TableRow className="relative z-0">
-      <TableCell><a href={`https://www.borsaitaliana.it/borsa/etf/scheda/${row.isin}.html?lang=it`} target='_blank'>{row.name}</a></TableCell>
-      <TableCell>{row.isin}</TableCell>
-      <TableCell><Badge variant="outline" className={`text-white px-1.5 bg-${colors[row.assetClass]}`}>{assetClassCategoryToString(row.assetClass)}</Badge></TableCell>
-      <TableCell>{row.quantity}</TableCell>
-      <TableCell>{formatMoney(valuePaid)}</TableCell>
+      <TableCell><a href={`https://www.borsaitaliana.it/borsa/etf/scheda/${isin}.html?lang=it`} target='_blank'>{name}</a></TableCell>
+      <TableCell>{isin}</TableCell>
+      <TableCell><Badge variant="outline" className={['text-white', 'px-1.5', color === 'chart-1' && 'bg-chart-1', color === 'chart-2' && 'bg-chart-2'].join(' ')}>{assetClassCategoryToString(assetClass)}</Badge></TableCell>
+      <TableCell>{quantity}</TableCell>
+      <TableCell>{formatMoney(paidValue)}</TableCell>
       <TableCell>{formatMoney(currentValue)}</TableCell>
       <TableCell><Badge variant="outline" className={`px-1.5 ${currentValueProfit > 0 ? 'bg-green-500' : 'bg-red-500 text-white'}`}>{(currentValueProfit).toFixed(2)} €</Badge></TableCell>
     </TableRow>
@@ -50,8 +49,8 @@ export function DataTable() {
       isin: etf.isin,
       assetClass: etf.assetClass.category,
       quantity,
-      paidPrice: etf.transactions.reduce((sum, { quantity, price }) => sum += quantity * price, 0),
-      currentPrice: quantity * (prices[etf.isin]?.price || 0)
+      paidValue: etf.transactions.reduce((sum, { quantity, price }) => sum += quantity * price, 0),
+      currentValue: quantity * (prices[etf.isin]?.price || 0)
     }
   })
 
@@ -73,7 +72,7 @@ export function DataTable() {
           <TableBody className="**:data-[slot=table-cell]:first:w-8">
             {data.length ? (
               data.map((row) => (
-                <Row key={row.isin} row={row} />
+                <Row key={row.isin} {...row} />
               ))
             ) : (
               <TableRow>

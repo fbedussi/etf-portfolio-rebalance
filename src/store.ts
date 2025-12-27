@@ -143,7 +143,7 @@ const selectCurrentAllocation = (state: State) => {
 
 export const useCurrentAllocation = () => useStore(useShallow(selectCurrentAllocation))
 
-export const useAssetClassColoros = () => useStore(useShallow((state: State) => {
+export const useAssetClassColors = () => useStore(useShallow((state: State) => {
     const targetAssetClasses = Object.keys(state.portfolio?.targetAllocation || {})
     const currentAssetClasses = Object.values(state.portfolio?.etfs || {}).map(etf => etf.assetClass.category)
 
