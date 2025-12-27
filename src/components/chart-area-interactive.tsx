@@ -1,5 +1,5 @@
 import * as React from "react"
-import { Area, AreaChart, CartesianGrid, XAxis } from "recharts"
+import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts"
 import { ChartPie } from './pie-chart'
 
 import { useIsMobile } from "@/hooks/use-mobile"
@@ -18,6 +18,8 @@ import {
 } from "@/components/ui/chart"
 
 import { usePrices } from "@/store"
+import { ToggleGroup, ToggleGroupItem } from "./ui/toggle-group"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select"
 const chartConfig = {
   price: {
     label: "price",
@@ -27,7 +29,7 @@ const chartConfig = {
 
 export function ChartAreaInteractive() {
   const isMobile = useIsMobile()
-  const [timeRange, setTimeRange] = React.useState("90d")
+  const [timeRange, setTimeRange] = React.useState("1y")
   const prices = usePrices()
 
   const chartData = Object.values(prices).reduce((result, { history }) => {
@@ -44,32 +46,32 @@ export function ChartAreaInteractive() {
 
   React.useEffect(() => {
     if (isMobile) {
-      setTimeRange("7d")
+      setTimeRange("6m")
     }
   }, [isMobile])
 
-  const data = chartDataArray
-
-  // const filteredData = chartDataArray.filter((item) => {
-  //   const date = new Date(item.date)
-  //   const referenceDate = new Date()
-  //   let daysToSubtract = 90
-  //   if (timeRange === "30d") {
-  //     daysToSubtract = 30
-  //   } else if (timeRange === "7d") {
-  //     daysToSubtract = 7
-  //   }
-  //   const startDate = new Date(referenceDate)
-  //   startDate.setDate(startDate.getDate() - daysToSubtract)
-  //   return date >= startDate
-  // })
+  const data = chartDataArray.filter((item) => {
+    const date = new Date(item.date)
+    const referenceDate = new Date()
+    let daysToSubtract = 90
+    if (timeRange === "1m") {
+      daysToSubtract = 30
+    } else if (timeRange === "6m") {
+      daysToSubtract = 180
+    } else if (timeRange === "1y") {
+      daysToSubtract = 365
+    }
+    const startDate = new Date(referenceDate)
+    startDate.setDate(startDate.getDate() - daysToSubtract)
+    return date >= startDate
+  })
 
   return (
     <div className="*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-1 gap-4 px-4 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs lg:px-6 @xl/main:grid-cols-2">
       <Card className="@container/card">
         <CardHeader>
           <CardTitle>Valore portafoglio</CardTitle>
-          {/* <CardAction>
+          <CardAction>
             <ToggleGroup
               type="single"
               value={timeRange}
@@ -77,9 +79,9 @@ export function ChartAreaInteractive() {
               variant="outline"
               className="hidden *:data-[slot=toggle-group-item]:!px-4 @[767px]/card:flex"
             >
-              <ToggleGroupItem value="90d">Ultimo mese</ToggleGroupItem>
-              <ToggleGroupItem value="30d">Ultimo anno</ToggleGroupItem>
-              <ToggleGroupItem value="7d">Dall'inizio</ToggleGroupItem>
+              <ToggleGroupItem value="1m">Ultimo mese</ToggleGroupItem>
+              <ToggleGroupItem value="6m">Ultimi 6 mesi</ToggleGroupItem>
+              <ToggleGroupItem value="1y">Ultimo anno</ToggleGroupItem>
             </ToggleGroup>
             <Select value={timeRange} onValueChange={setTimeRange}>
               <SelectTrigger
@@ -87,21 +89,21 @@ export function ChartAreaInteractive() {
                 size="sm"
                 aria-label="Select a value"
               >
-                <SelectValue placeholder="Last 3 months" />
+                <SelectValue placeholder="Ultimo mese" />
               </SelectTrigger>
               <SelectContent className="rounded-xl">
-                <SelectItem value="90d" className="rounded-lg">
+                <SelectItem value="1m" className="rounded-lg">
                   Ultimo mese
                 </SelectItem>
-                <SelectItem value="30d" className="rounded-lg">
-                  Ultimo anno
+                <SelectItem value="6m" className="rounded-lg">
+                  Ultimi 6 mesi
                 </SelectItem>
-                <SelectItem value="7d" className="rounded-lg">
-                  Dall'inizio
+                <SelectItem value="1y" className="rounded-lg">
+                  Ultimo anno
                 </SelectItem>
               </SelectContent>
             </Select>
-          </CardAction> */}
+          </CardAction>
         </CardHeader>
         <CardContent className="px-2 pt-4 sm:px-6 sm:pt-6 flex-1">
           <ChartContainer
@@ -152,12 +154,12 @@ export function ChartAreaInteractive() {
                   />
                 }
               />
+              <YAxis domain={["dataMin", "auto"]} hide />
               <Area
                 dataKey="price"
                 type="natural"
                 fill="url(#fillValue)"
                 stroke="var(--color-primary)"
-                stackId="a"
               />
             </AreaChart>
           </ChartContainer>
