@@ -35,7 +35,9 @@ export type CurrentPrices = Record<Isin, {
   history: { price: number, date: string }[]
 }>
 
-export type ApiResponse = {
+export type ApiResponse<T> = {data: T} | {error: Error}
+
+export type PricesApiResponse = {
   intradayPoint: IntradayPoint[]
   status: number,
   entityID: string,

@@ -49,7 +49,7 @@ const selectCurrentPortfolioValue = (state: State) => {
         return result
     }, {} as Record<string, number>/*isin, quantity*/)
 
-    const value = Object.entries(quantities).reduce((result, [isin, quantity]) => result += state.prices[isin].price * quantity, 0)
+    const value = Object.entries(quantities).reduce((result, [isin, quantity]) => result += (state.prices[isin]?.price || 0) * quantity, 0)
 
     return value
 }
@@ -110,7 +110,7 @@ const selectCurrentDrift = (state: State) => {
             .filter(etf => etf.assetClass.category === assetClass)
             .map(etf => {
                 const quantity = etf.transactions.reduce((sum, { quantity }) => sum += quantity, 0)
-                return quantity * state.prices[etf.isin].price
+                return quantity * (state.prices[etf.isin]?.price || 0)
             })
             .reduce((sum, price) => sum += price, 0)
         result[assetClass] = (currentAssetClassValue - targetAssetClassValue) / targetAssetClassValue * 100
@@ -129,7 +129,7 @@ const selectCurrentAllocation = (state: State) => {
     const currentAssetClassValue = Object.values(state.portfolio?.etfs || {})
         .reduce((result, etf) => {
             const quantity = etf.transactions.reduce((sum, { quantity }) => sum += quantity, 0)
-            result[etf.assetClass.category] = (result[etf.assetClass.category] || 0) + quantity * state.prices[etf.isin].price
+            result[etf.assetClass.category] = (result[etf.assetClass.category] || 0) + quantity * (state.prices[etf.isin]?.price || 0)
             return result
         }, {} as Record<AssetClassCategory, number>)
 

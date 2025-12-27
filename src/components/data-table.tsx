@@ -51,7 +51,7 @@ export function DataTable() {
       assetClass: etf.assetClass.category,
       quantity,
       paidPrice: etf.transactions.reduce((sum, { quantity, price }) => sum += quantity * price, 0),
-      currentPrice: quantity * (prices[etf.isin].price || 0)
+      currentPrice: quantity * (prices[etf.isin]?.price || 0)
     }
   })
 
