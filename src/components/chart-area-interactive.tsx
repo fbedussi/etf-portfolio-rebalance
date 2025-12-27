@@ -20,6 +20,9 @@ import {
 import { usePrices } from "@/store"
 import { ToggleGroup, ToggleGroupItem } from "./ui/toggle-group"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select"
+import { Checkbox } from "./ui/checkbox"
+import { Label } from "./ui/label"
+
 const chartConfig = {
   price: {
     label: "price",
@@ -30,6 +33,7 @@ const chartConfig = {
 export function ChartAreaInteractive() {
   const isMobile = useIsMobile()
   const [timeRange, setTimeRange] = React.useState("1y")
+  const [isExpanded, setIsExpanded] = React.useState(true)
   const prices = usePrices()
 
   const chartData = Object.values(prices).reduce((result, { history }) => {
@@ -72,37 +76,43 @@ export function ChartAreaInteractive() {
         <CardHeader>
           <CardTitle>Valore portafoglio</CardTitle>
           <CardAction>
-            <ToggleGroup
-              type="single"
-              value={timeRange}
-              onValueChange={setTimeRange}
-              variant="outline"
-              className="hidden *:data-[slot=toggle-group-item]:!px-4 @[767px]/card:flex"
-            >
-              <ToggleGroupItem value="1m">Ultimo mese</ToggleGroupItem>
-              <ToggleGroupItem value="6m">Ultimi 6 mesi</ToggleGroupItem>
-              <ToggleGroupItem value="1y">Ultimo anno</ToggleGroupItem>
-            </ToggleGroup>
-            <Select value={timeRange} onValueChange={setTimeRange}>
-              <SelectTrigger
-                className="flex w-40 **:data-[slot=select-value]:block **:data-[slot=select-value]:truncate @[767px]/card:hidden"
-                size="sm"
-                aria-label="Select a value"
+            <div className="flex gap-4">
+              <div className="flex items-center gap-3">
+                <Checkbox id="terms" checked={isExpanded} onClick={() => setIsExpanded(!isExpanded)} />
+                <Label htmlFor="terms">Espandi</Label>
+              </div>
+              <ToggleGroup
+                type="single"
+                value={timeRange}
+                onValueChange={setTimeRange}
+                variant="outline"
+                className="hidden *:data-[slot=toggle-group-item]:!px-4 @[767px]/card:flex"
               >
-                <SelectValue placeholder="Ultimo mese" />
-              </SelectTrigger>
-              <SelectContent className="rounded-xl">
-                <SelectItem value="1m" className="rounded-lg">
-                  Ultimo mese
-                </SelectItem>
-                <SelectItem value="6m" className="rounded-lg">
-                  Ultimi 6 mesi
-                </SelectItem>
-                <SelectItem value="1y" className="rounded-lg">
-                  Ultimo anno
-                </SelectItem>
-              </SelectContent>
-            </Select>
+                <ToggleGroupItem value="1m">Ultimo mese</ToggleGroupItem>
+                <ToggleGroupItem value="6m">Ultimi 6 mesi</ToggleGroupItem>
+                <ToggleGroupItem value="1y">Ultimo anno</ToggleGroupItem>
+              </ToggleGroup>
+              <Select value={timeRange} onValueChange={setTimeRange}>
+                <SelectTrigger
+                  className="flex w-40 **:data-[slot=select-value]:block **:data-[slot=select-value]:truncate @[767px]/card:hidden"
+                  size="sm"
+                  aria-label="Select a value"
+                >
+                  <SelectValue placeholder="Ultimo mese" />
+                </SelectTrigger>
+                <SelectContent className="rounded-xl">
+                  <SelectItem value="1m" className="rounded-lg">
+                    Ultimo mese
+                  </SelectItem>
+                  <SelectItem value="6m" className="rounded-lg">
+                    Ultimi 6 mesi
+                  </SelectItem>
+                  <SelectItem value="1y" className="rounded-lg">
+                    Ultimo anno
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </CardAction>
         </CardHeader>
         <CardContent className="px-2 pt-4 sm:px-6 sm:pt-6 flex-1">
@@ -154,7 +164,7 @@ export function ChartAreaInteractive() {
                   />
                 }
               />
-              <YAxis domain={["dataMin", "auto"]} hide />
+              <YAxis domain={isExpanded ? ["dataMin", "dataMax"] : undefined} hide />
               <Area
                 dataKey="price"
                 type="natural"
