@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import type { AssetClassCategory, CurrentPrices, Portfolio } from './model'
 import { devtools } from 'zustand/middleware'
 import { useShallow } from 'zustand/shallow'
+import { createSelector } from "reselect";
 
 type State = {
     portfolio: Portfolio | null
@@ -16,7 +17,7 @@ export const useStore = create<State>()(devtools(() => ({
 
 export const setPortfolio = (portfolio: Portfolio) => useStore.setState({ portfolio })
 
-export const setPrice = (isin: string, price: number, history: {price: number, date: string}[]) => useStore.setState(state => ({
+export const setPrice = (isin: string, price: number, history: { price: number, date: string }[]) => useStore.setState(state => ({
     prices: {
         ...state.prices,
         [isin]: {
@@ -29,9 +30,13 @@ export const setPrice = (isin: string, price: number, history: {price: number, d
 
 export const setRefreshPrices = (refreshPrices: boolean) => useStore.setState({ refreshPrices })
 
-export const usePortfolio = () => useStore((state: State) => state.portfolio)
+const selectPortfolio = (state: State) => state.portfolio
 
-export const usePrices = () => useStore((state: State) => state.prices)
+export const usePortfolio = () => useStore(selectPortfolio)
+
+const selectPrices = (state: State) => state.prices
+
+export const usePrices = () => useStore(selectPrices)
 
 export const usePortfolioName = () => useStore((state: State) => state.portfolio?.name || '')
 
@@ -74,23 +79,44 @@ export const useCurrentPortfolioValueDate = () => useStore(useShallow(selectCurr
 
 export const useMaxDrift = () => useStore((state: State) => state.portfolio?.maxDrift || 0)
 
-const selectCurrentDrift = (state: State) => {
-    const currentPortfolioValue = selectCurrentPortfolioValue(state)
-    const currentDriftByAssetClass = Object.entries(state.portfolio?.targetAllocation || {}).reduce((result, [assetClass, percentage]) => {
+const selectCurrentDrift = createSelector([selectPortfolio, selectPrices, selectCurrentPortfolioValue], (portfolio, prices, currentPortfolioValue) => {
+    const currentDriftByAssetClass = Object.entries(portfolio?.targetAllocation || {}).reduce((result, [assetClass, percentage]) => {
         const targetAssetClassValue = currentPortfolioValue * percentage / 100
-        const currentAssetClassValue = Object.values(state.portfolio?.etfs || {})
+        const currentAssetClassValue = Object.values(portfolio?.etfs || {})
             .filter(etf => etf.assetClass.category === assetClass)
             .map(etf => {
                 const quantity = etf.transactions.reduce((sum, { quantity }) => sum += quantity, 0)
-                return quantity * (state.prices[etf.isin]?.price || 0)
+                return quantity * (prices[etf.isin]?.price || 0)
             })
             .reduce((sum, price) => sum += price, 0)
-        result[assetClass] = (currentAssetClassValue - targetAssetClassValue) / targetAssetClassValue * 100
+        const amount = currentAssetClassValue - targetAssetClassValue
+        result.push({ assetClass, amount, percentage: amount / targetAssetClassValue * 100 })
         return result
-    }, {} as Record<AssetClassCategory, number>)
+    }, [] as { assetClass: AssetClassCategory, amount: number, percentage: number }[])
 
-    return currentDriftByAssetClass
-}
+    const amountToReallocate = currentDriftByAssetClass.reduce((result, { amount }) => amount < 0 ? result + Math.abs(amount) : result, 0)
+
+    const assetClassToBuy = currentDriftByAssetClass
+        .filter(({ amount }) => amount < 0)
+        .toSorted((a, b) => a.percentage - b.percentage)
+        .map(({ assetClass }) => assetClass)
+
+    const assetClassToBuyWithRatio = assetClassToBuy.map((assetClass, index) => ({
+        assetClass,
+        ratio: index === 0 ? 1 : (portfolio?.targetAllocation[assetClass] || 1) / (portfolio?.targetAllocation?.[assetClassToBuy[0]] || 1)
+    }))
+
+    const parts = assetClassToBuyWithRatio.reduce((result, {ratio}) => result + ratio, 0)
+    return currentDriftByAssetClass.map(({assetClass, amount, percentage}) => {
+        const amountExternal =  amount > 0 ? 0 : Math.abs(amount) + (amountToReallocate / (parts || 1) * (assetClassToBuyWithRatio.find(acwr => acwr.assetClass === assetClass)?.ratio || 1))
+        
+        return {
+        assetClass,
+        amount,
+        percentage,
+        amountExternal,
+    }})
+})
 
 export const useCurrentDrift = () => useStore(useShallow(selectCurrentDrift))
 

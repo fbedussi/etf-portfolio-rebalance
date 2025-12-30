@@ -29,8 +29,8 @@ export function AssetAllocationTable() {
                 {assetClasses.map((assetClass) => (
                     <TableRow key={assetClass}>
                         <TableCell className="font-medium">{assetClassCategoryToString(assetClass)}</TableCell>
-                        <TableCell>{targetAllocation[assetClass].toFixed(0) || '0'}%</TableCell>
-                        <TableCell>{currentAllocation[assetClass].toFixed(0) || '0'}%</TableCell>
+                        <TableCell>{targetAllocation[assetClass]?.toFixed(0) || '0'}%</TableCell>
+                        <TableCell>{currentAllocation[assetClass]?.toFixed(0) || '0'}%</TableCell>
                         <TableCell className="text-right">{((targetAllocation[assetClass] || 0 - currentAllocation[assetClass] || 0) / (targetAllocation[assetClass] || 0) * 100).toFixed(0)}%</TableCell>
                     </TableRow>
                 ))}
