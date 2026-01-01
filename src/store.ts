@@ -3,6 +3,7 @@ import type { AssetClassCategory, CurrentPrices, Portfolio } from './model'
 import { devtools } from 'zustand/middleware'
 import { useShallow } from 'zustand/shallow'
 import { createSelector } from "reselect";
+import { getDriftDataByAssetClass } from './lib/portfolio';
 
 type State = {
     portfolio: Portfolio | null
@@ -31,6 +32,9 @@ export const setPrice = (isin: string, price: number, history: { price: number, 
 export const setRefreshPrices = (refreshPrices: boolean) => useStore.setState({ refreshPrices })
 
 const selectPortfolio = (state: State) => state.portfolio
+
+const selectTargetAllocation = (state: State) => state.portfolio?.targetAllocation || {}
+
 
 export const usePortfolio = () => useStore(selectPortfolio)
 
@@ -79,46 +83,32 @@ export const useCurrentPortfolioValueDate = () => useStore(useShallow(selectCurr
 
 export const useMaxDrift = () => useStore((state: State) => state.portfolio?.maxDrift || 0)
 
-const selectCurrentDrift = createSelector([selectPortfolio, selectPrices, selectCurrentPortfolioValue], (portfolio, prices, currentPortfolioValue) => {
-    const currentDriftByAssetClass = Object.entries(portfolio?.targetAllocation || {}).reduce((result, [assetClass, percentage]) => {
-        const targetAssetClassValue = currentPortfolioValue * percentage / 100
-        const currentAssetClassValue = Object.values(portfolio?.etfs || {})
-            .filter(etf => etf.assetClass.category === assetClass)
-            .map(etf => {
-                const quantity = etf.transactions.reduce((sum, { quantity }) => sum += quantity, 0)
-                return quantity * (prices[etf.isin]?.price || 0)
-            })
-            .reduce((sum, price) => sum += price, 0)
-        const amount = currentAssetClassValue - targetAssetClassValue
-        result.push({ assetClass, amount, percentage: amount / targetAssetClassValue * 100 })
-        return result
-    }, [] as { assetClass: AssetClassCategory, amount: number, percentage: number }[])
-
-    const amountToReallocate = currentDriftByAssetClass.reduce((result, { amount }) => amount < 0 ? result + Math.abs(amount) : result, 0)
-
-    const assetClassToBuy = currentDriftByAssetClass
-        .filter(({ amount }) => amount < 0)
-        .toSorted((a, b) => a.percentage - b.percentage)
-        .map(({ assetClass }) => assetClass)
-
-    const assetClassToBuyWithRatio = assetClassToBuy.map((assetClass, index) => ({
-        assetClass,
-        ratio: index === 0 ? 1 : (portfolio?.targetAllocation[assetClass] || 1) / (portfolio?.targetAllocation?.[assetClassToBuy[0]] || 1)
-    }))
-
-    const parts = assetClassToBuyWithRatio.reduce((result, {ratio}) => result + ratio, 0)
-    return currentDriftByAssetClass.map(({assetClass, amount, percentage}) => {
-        const amountExternal =  amount > 0 ? 0 : Math.abs(amount) + (amountToReallocate / (parts || 1) * (assetClassToBuyWithRatio.find(acwr => acwr.assetClass === assetClass)?.ratio || 1))
-        
+const selectCurretEtfData = createSelector(selectPortfolio, selectPrices, (portfolio, prices) => {
+    return (Object.values(portfolio?.etfs || {})).map(etf => {
+        const quantity = etf.transactions.reduce((sum, { quantity }) => sum += quantity, 0)
         return {
-        assetClass,
-        amount,
-        percentage,
-        amountExternal,
-    }})
+          name: etf.name,
+          isin: etf.isin,
+          assetClass: etf.assetClass.category,
+          quantity,
+          paidValue: etf.transactions.reduce((sum, { quantity, price }) => sum += quantity * price, 0),
+          currentValue: quantity * (prices[etf.isin]?.price || 0)
+        }
+      })
+}) 
+
+export const useCurrentEtfData = () => useStore(selectCurretEtfData)
+
+const selectCurrentValuesByAssetClass = createSelector(selectCurretEtfData, currentEtfData => {
+    return currentEtfData.reduce((result, {assetClass, currentValue}) => {
+        result[assetClass] = (result[assetClass] || 0) + currentValue
+        return result
+    }, {} as Record<AssetClassCategory, number>)
 })
 
-export const useCurrentDrift = () => useStore(useShallow(selectCurrentDrift))
+const selectDriftData = createSelector(selectTargetAllocation, selectCurrentValuesByAssetClass, getDriftDataByAssetClass)
+
+export const useDriftData = () => useStore(selectDriftData)
 
 export const useTargetAllocation = () => useStore(useShallow((state: State) => state.portfolio?.targetAllocation || {}))
 

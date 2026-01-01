@@ -1,16 +1,12 @@
-import { IconTrendingUp } from "@tabler/icons-react"
-import { useShallow } from 'zustand/shallow'
-import { Badge } from "@/components/ui/badge"
 import {
   Card,
-  CardAction,
   CardDescription,
   CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
 import { CircleAlertIcon, MoveDownIcon, MoveUpIcon, ThumbsUpIcon } from "lucide-react"
-import { useCurrentDrift, useMaxDrift } from "@/store"
+import { useDriftData, useMaxDrift } from "@/store"
 import { assetClassCategoryToString, formatMoney } from "@/lib/utils"
 import { Checkbox } from "./ui/checkbox"
 import { Label } from "./ui/label"
@@ -18,22 +14,22 @@ import { useState } from "react"
 
 export function DriftCard() {
   const maxDrift = useMaxDrift()
-  const currentDrift = useCurrentDrift()
+  const currentDrift = useDriftData()
   const [internalRebalance, setInternalRebalance] = useState(true)
   const maxCurrentDrift = Math.max(...Object.values(currentDrift).map((drift) => drift.percentage))
 
-  const renderAmountToBuyOrSell = (amount: number, amountExternal: number) => {
-    if (internalRebalance) {
-      if (amount > 0) {
-        return `Vendere ${formatMoney(Math.abs(amount))}`
+  const renderAmountToBuyOrSell = (drifAmount: number, amountToBuyToCompensate: number | null) => {
+    if (internalRebalance || amountToBuyToCompensate === null) {
+      if (drifAmount > 0) {
+        return `Vendere ${formatMoney(Math.abs(drifAmount))}`
       } else {
-        return `Comprare ${formatMoney(Math.abs(amount))}`
+        return `Comprare ${formatMoney(Math.abs(drifAmount))}`
       }
     } else {
-      if (amount > 0) {
+      if (drifAmount > 0) {
         return ''
       } else {
-        return `Comprare ${formatMoney(Math.abs(amountExternal))}`
+        return `Comprare ${formatMoney(Math.abs(amountToBuyToCompensate))}`
       }
     }
   }
@@ -55,7 +51,7 @@ export function DriftCard() {
           <Checkbox id="terms" checked={internalRebalance} onClick={() => setInternalRebalance(!internalRebalance)} />
           <Label htmlFor="terms">Ribilanciamento interno</Label>
         </div>
-        {currentDrift.map(({ assetClass, amount, amountExternal, percentage }) => (
+        {currentDrift.map(({ assetClass, drifAmount, amountToBuyToCompensate, percentage }) => (
           <div key={assetClass} className="line-clamp-1 flex gap-2 font-medium">
             {percentage > 0
               ? <MoveDownIcon className="size-4 stroke-red-500" />
@@ -63,7 +59,7 @@ export function DriftCard() {
             {assetClassCategoryToString(assetClass)}
             <span className="text-muted-foreground">
               {percentage.toFixed(0)}% {percentage > 0 ? 'sopra' : 'sotto'} il target.{' '}
-              {renderAmountToBuyOrSell(amount, amountExternal)}
+              {renderAmountToBuyOrSell(drifAmount, amountToBuyToCompensate)}
             </span>
           </div>
         ))}

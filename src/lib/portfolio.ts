@@ -19,7 +19,7 @@ export function getDriftDataByAssetClass(
 
     const assetClassesInTarget = Object.keys(targetAllocation)
 
-    return assetClasses.map((assetClass) => {
+    const drifts = assetClasses.map((assetClass) => {
         const targetAllocationPercentage = targetAllocation[assetClass] || 0
         const currentValue = currentValuesByAssetClass[assetClass] || 0
 
@@ -33,20 +33,30 @@ export function getDriftDataByAssetClass(
 
         const targetValue = targetAllocationPercentage / 100 * portfolioValue
 
-        // if an asset class is not in the target it is impossible to compensate the drift without selling it or changing the target
-        const isItPossibleToCompensate = Object.keys(currentValuesByAssetClass).every(key => assetClassesInTarget.includes(key))
-
-        let amountToBuyToCompensate = null
-
-        if (isItPossibleToCompensate && currentValue) {
-            const portfolioValueToCompensate = currentValueAssetClasInExcess / targetAllocationPercentage * 100
-        }
 
         return {
             assetClass,
+            currentValue,
+            targetAllocationPercentage,
             drifAmount: currentValue - targetValue,
             percentage: Number(driftPercentage.toFixed(2)),
-            amountToBuyToCompensate: isItPossibleToCompensate ? 0 : null,
         }
     })
+
+    // if an asset class is not in the target it is impossible to compensate the drift without selling it or changing the target
+    const isItPossibleToCompensate = Object.keys(currentValuesByAssetClass).every(key => assetClassesInTarget.includes(key))
+
+    const assetClassWithGreatestDrift = drifts.toSorted((a, b) => a.drifAmount - b.drifAmount).at(-1)
+    const newPorfolioValue = isItPossibleToCompensate && assetClassWithGreatestDrift
+        ? assetClassWithGreatestDrift.currentValue / assetClassWithGreatestDrift.targetAllocationPercentage * 100
+        : portfolioValue
+
+    return drifts.map(({ assetClass, currentValue, drifAmount, targetAllocationPercentage, percentage }) => ({
+        assetClass,
+        drifAmount,
+        percentage,
+        amountToBuyToCompensate: isItPossibleToCompensate
+            ? Number(((newPorfolioValue / 100 * targetAllocationPercentage) - currentValue).toFixed(2))
+            : null,
+    }))
 }

@@ -1,3 +1,4 @@
+/// <reference types="node" />
 import assert from 'node:assert/strict';
 import { test, describe } from 'node:test';
 import { getDriftDataByAssetClass } from './portfolio.ts';
@@ -76,17 +77,17 @@ describe('getDriftDataByAssetClass', () => {
             assetClass: 'corporateBonds',
             drifAmount: -1,
             percentage: -4.76,
-            amountToBuyToCompensate: 0,
+            amountToBuyToCompensate: 2,
         }, {
             assetClass: 'governmentBonds',
             drifAmount: -1.25,
             percentage: -4.76,
-            amountToBuyToCompensate: 0,
+            amountToBuyToCompensate: 2.5,
         }, {
             assetClass: 'gold',
             drifAmount: -0.25,
             percentage: -4.76,
-            amountToBuyToCompensate: 0,
+            amountToBuyToCompensate: 0.5,
         }]);
     })
 

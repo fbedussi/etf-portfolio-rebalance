@@ -8,7 +8,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { assetClassCategoryToString, formatMoney } from "@/lib/utils"
-import { useAssetClassColors, usePortfolio, usePrices } from "@/store"
+import { useAssetClassColors, useCurrentEtfData, usePortfolio, usePrices } from "@/store"
 
 
 function Row({ name, isin, assetClass, quantity, paidValue, currentValue }: {
@@ -39,20 +39,7 @@ function Row({ name, isin, assetClass, quantity, paidValue, currentValue }: {
 }
 
 export function DataTable() {
-  const portfolio = usePortfolio()
-  const prices = usePrices()
-
-  const data = (Object.values(portfolio?.etfs || {})).map(etf => {
-    const quantity = etf.transactions.reduce((sum, { quantity }) => sum += quantity, 0)
-    return {
-      name: etf.name,
-      isin: etf.isin,
-      assetClass: etf.assetClass.category,
-      quantity,
-      paidValue: etf.transactions.reduce((sum, { quantity, price }) => sum += quantity * price, 0),
-      currentValue: quantity * (prices[etf.isin]?.price || 0)
-    }
-  })
+  const data = useCurrentEtfData()
 
   return (
     <div className="relative flex flex-col gap-4 overflow-auto px-4 lg:px-6">
