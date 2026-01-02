@@ -1,7 +1,7 @@
 import type { AssetClassCategory } from "@/model";
 
 export function getDriftDataByAssetClass(
-    targetAllocation: Record<AssetClassCategory, number>,
+    targetAllocation: Record<AssetClassCategory, number> | undefined,
     currentValuesByAssetClass: Record<AssetClassCategory, number>
 ): {
     assetClass: string,
@@ -13,6 +13,10 @@ export function getDriftDataByAssetClass(
     // is null if it is not possible to rebalance without selling something or changing the target allocation
     amountToBuyToCompensate: number | null,
 }[] {
+    if (!targetAllocation) {
+        return []
+    }
+    
     const assetClasses = [...new Set(Object.keys(targetAllocation).concat(Object.keys(currentValuesByAssetClass)))]
 
     const portfolioValue = Object.values(currentValuesByAssetClass).reduce((sum, val) => sum + val, 0)

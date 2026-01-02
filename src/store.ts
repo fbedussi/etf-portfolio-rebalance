@@ -33,7 +33,7 @@ export const setRefreshPrices = (refreshPrices: boolean) => useStore.setState({ 
 
 const selectPortfolio = (state: State) => state.portfolio
 
-const selectTargetAllocation = (state: State) => state.portfolio?.targetAllocation || {}
+const selectTargetAllocation = (state: State) => state.portfolio?.targetAllocation
 
 
 export const usePortfolio = () => useStore(selectPortfolio)
