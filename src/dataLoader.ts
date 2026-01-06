@@ -79,7 +79,6 @@ export function useLoadPrices() {
         }
 
         isins.forEach(async isin => {
-
             const cachedData = !refreshPrices && await Cache.getCurrentPrices(isin)
 
             const handleError = (error: Error) => {
@@ -90,7 +89,7 @@ export function useLoadPrices() {
                 }
             }
 
-            if (!refreshPrices && cachedData && (new Date(cachedData.timestamp).getTime() - Date.now() < ONE_DAY)) {
+            if (!refreshPrices && cachedData && (Date.now() - new Date(cachedData.timestamp).getTime() < ONE_DAY)) {
                 Store.setPrice(isin, cachedData.price, cachedData.history)
             } else {
                 const freshData = await Api.getPrices(isin)
