@@ -23,21 +23,25 @@ describe('getDriftDataByAssetClass', () => {
             drifAmount: 0,
             percentage: 0,
             amountToBuyToCompensate: 0,
+            amountToSellToCompensate: 0,    
         }, {
             assetClass: 'corporateBonds',
             drifAmount: 0,
             percentage: 0,
             amountToBuyToCompensate: 0,
+            amountToSellToCompensate: 0,
         }, {
             assetClass: 'governmentBonds',
             drifAmount: 0,
             percentage: 0,
             amountToBuyToCompensate: 0,
+            amountToSellToCompensate: 0,
         }, {
             assetClass: 'gold',
             drifAmount: 0,
             percentage: 0,
             amountToBuyToCompensate: 0,
+            amountToSellToCompensate: 0,
         }]);
     })
 
@@ -50,12 +54,37 @@ describe('getDriftDataByAssetClass', () => {
                     drifAmount: -50,
                     percentage: -50,
                     amountToBuyToCompensate: null, // not possible to rebalance without selling something or changing the target allocation
+                    amountToSellToCompensate: 0,
                 },
                 {
                     assetClass: 'bonds',
                     drifAmount: 50,
                     percentage: 100,
                     amountToBuyToCompensate: null, // not possible to rebalance without selling something or changing the target allocation
+                    amountToSellToCompensate: 50
+                }
+            ]
+        )
+
+    })
+
+    test('when an asset class in the target allocation is not present in the portfolio', () => {
+        assert.deepStrictEqual(
+            getDriftDataByAssetClass({ stocks: 50, bonds: 50 }, { stocks: 50 }),
+            [
+                {
+                    assetClass: 'stocks',
+                    drifAmount: 25,
+                    percentage: 100,
+                    amountToBuyToCompensate: 0,
+                    amountToSellToCompensate: null,
+                },
+                {
+                    assetClass: 'bonds',
+                    drifAmount: -25,
+                    percentage: -100,
+                    amountToBuyToCompensate: 50,
+                    amountToSellToCompensate: null, // there is nothing to sell
                 }
             ]
         )
@@ -73,21 +102,25 @@ describe('getDriftDataByAssetClass', () => {
             drifAmount: 2.5,
             percentage: 4.76,
             amountToBuyToCompensate: 0,
+            amountToSellToCompensate: 5,
         }, {
             assetClass: 'corporateBonds',
             drifAmount: -1,
             percentage: -4.76,
             amountToBuyToCompensate: 2,
+            amountToSellToCompensate: 0,
         }, {
             assetClass: 'governmentBonds',
             drifAmount: -1.25,
             percentage: -4.76,
             amountToBuyToCompensate: 2.5,
+            amountToSellToCompensate: 0,
         }, {
             assetClass: 'gold',
             drifAmount: -0.25,
             percentage: -4.76,
             amountToBuyToCompensate: 0.5,
+            amountToSellToCompensate: 0,
         }]);
     })
 

@@ -12,11 +12,14 @@ export function getDriftDataByAssetClass(
     // amount to buy to rebalance investing new cash, without selling any other asset. It is always positive
     // is null if it is not possible to rebalance without selling something or changing the target allocation
     amountToBuyToCompensate: number | null,
+    // amount to sell to rebalance without buying any other asset. It is always positive
+    // is null if it is not possible to rebalance without buying something or changing the target allocation
+    amountToSellToCompensate: number | null,
 }[] {
     if (!targetAllocation) {
         return []
     }
-    
+
     const assetClasses = [...new Set(Object.keys(targetAllocation).concat(Object.keys(currentValuesByAssetClass)))]
 
     const portfolioValue = Object.values(currentValuesByAssetClass).reduce((sum, val) => sum + val, 0)
@@ -47,20 +50,35 @@ export function getDriftDataByAssetClass(
         }
     })
 
-    // if an asset class is not in the target it is impossible to compensate the drift without selling it or changing the target
-    const isItPossibleToCompensate = Object.keys(currentValuesByAssetClass).every(key => assetClassesInTarget.includes(key))
+    const assetClassesInPortfolio = Object.keys(currentValuesByAssetClass)
 
-    const assetClassWithGreatestDrift = drifts.toSorted((a, b) => a.drifAmount - b.drifAmount).at(-1)
-    const newPorfolioValue = isItPossibleToCompensate && assetClassWithGreatestDrift
-        ? assetClassWithGreatestDrift.currentValue / assetClassWithGreatestDrift.targetAllocationPercentage * 100
+    // if an asset class is not in the target it is impossible to compensate the drift without selling it or changing the target
+    const isItPossibleToCompensateWithBuyStrategy = assetClassesInPortfolio.every(key => assetClassesInTarget.includes(key))
+
+    // if an asset class is not in the portfolio it is impossible to compensate the drift without buying it or changing the target
+    const isItPossibleToCompensateWithSellStrategy = assetClassesInTarget.every(key => assetClassesInPortfolio.includes(key))
+
+    const sortedDrifts = drifts.toSorted((a, b) => a.drifAmount - b.drifAmount)
+    const assetClassWithLowestDrift = sortedDrifts.at(0)
+    const assetClassWithHighestDrift = sortedDrifts.at(-1)
+    const newPorfolioValue_buyStrategy = isItPossibleToCompensateWithBuyStrategy && assetClassWithHighestDrift
+        ? assetClassWithHighestDrift.currentValue / assetClassWithHighestDrift.targetAllocationPercentage * 100
         : portfolioValue
+
+    const newPorfolioValue_sellStrategy = assetClassWithLowestDrift
+        ? assetClassWithLowestDrift.currentValue / assetClassWithLowestDrift.targetAllocationPercentage * 100
+        : portfolioValue
+
 
     return drifts.map(({ assetClass, currentValue, drifAmount, targetAllocationPercentage, percentage }) => ({
         assetClass,
         drifAmount,
         percentage,
-        amountToBuyToCompensate: isItPossibleToCompensate
-            ? Number(((newPorfolioValue / 100 * targetAllocationPercentage) - currentValue).toFixed(2))
+        amountToBuyToCompensate: isItPossibleToCompensateWithBuyStrategy
+            ? Number(((newPorfolioValue_buyStrategy / 100 * targetAllocationPercentage) - currentValue).toFixed(2))
+            : null,
+        amountToSellToCompensate: isItPossibleToCompensateWithSellStrategy
+            ? Number((currentValue - (newPorfolioValue_sellStrategy / 100 * targetAllocationPercentage)).toFixed(2))
             : null,
     }))
 }

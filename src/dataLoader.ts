@@ -22,8 +22,9 @@ export function useLoadPortfolio() {
                     name: 'Fra2',
                     targetAllocation: {
                         stocks: 50,
-                        corporateBonds: 20,
-                        governmentBonds: 25,
+                        bonds: 45,
+                        // corporateBonds: 20,
+                        // governmentBonds: 25,
                         gold: 5
                     },
                     maxDrift: 10,
@@ -46,7 +47,8 @@ export function useLoadPortfolio() {
                             name: 'Xtrackers II EUR Corporate Bond UCITS ETF 1C',
                             assetClass: {
                                 name: "Eur Corporate Bonds",
-                                category: "corporateBonds",
+                                // category: "corporateBonds",
+                                category: "bonds",
                             },
                             transactions: [{
                                 date: "2024-11-15",
