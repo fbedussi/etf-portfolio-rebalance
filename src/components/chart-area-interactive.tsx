@@ -17,11 +17,13 @@ import {
   type ChartConfig,
 } from "@/components/ui/chart"
 
-import { usePrices } from "@/store"
+import { usePortfolio, usePrices } from "@/store"
 import { ToggleGroup, ToggleGroupItem } from "./ui/toggle-group"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select"
 import { Checkbox } from "./ui/checkbox"
 import { Label } from "./ui/label"
+import type { Isin } from "@/model"
+import { useMemo } from "react"
 
 const chartConfig = {
   price: {
@@ -35,18 +37,7 @@ export function ChartAreaInteractive() {
   const [timeRange, setTimeRange] = React.useState("1y")
   const [isExpanded, setIsExpanded] = React.useState(true)
   const prices = usePrices()
-
-  const chartData = Object.values(prices).reduce((result, { history }) => {
-    history.forEach(({ date, price }) => {
-      result[date] = (result[date] || 0) + price
-    })
-    return result
-  }, {} as Record<string, number>)
-
-  const chartDataArray = Object.entries(chartData).map(([date, price]) => ({
-    date,
-    price,
-  })).toSorted((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+  const portfolio = usePortfolio()
 
   React.useEffect(() => {
     if (isMobile) {
@@ -54,7 +45,35 @@ export function ChartAreaInteractive() {
     }
   }, [isMobile])
 
-  const data = chartDataArray.filter((item) => {
+  const quantityAtDate = (isin: Isin, date: string) => {
+    if (!portfolio) return 0
+
+    const etf = portfolio.etfs[isin]
+    if (!etf) return 0
+
+    let quantity = 0
+    for (const transaction of etf.transactions) {
+      if (transaction.date > date) {
+        break
+      }
+      quantity += transaction.quantity
+    }
+    return quantity
+  }
+
+  const chartData = useMemo(() => Object.entries(prices).reduce((result, [isin, { history }]) => {
+    history.forEach(({ date, price }) => {
+      result[date] = (result[date] || 0) + (price * quantityAtDate(isin, date))
+    })
+    return result
+  }, {} as Record<string, number>), [prices])
+
+  const chartDataSorted = useMemo(() => Object.entries(chartData).map(([date, price]) => ({
+    date,
+    price,
+  })).toSorted((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()), [chartData])
+
+  const data = useMemo(() => chartDataSorted.filter((item) => {
     const date = new Date(item.date)
     const referenceDate = new Date()
     let daysToSubtract = 90
@@ -68,7 +87,7 @@ export function ChartAreaInteractive() {
     const startDate = new Date(referenceDate)
     startDate.setDate(startDate.getDate() - daysToSubtract)
     return date >= startDate
-  })
+  }), [chartDataSorted, timeRange])
 
   return (
     <div className="*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-1 gap-4 px-4 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs lg:px-6 @xl/main:grid-cols-2">
@@ -167,7 +186,6 @@ export function ChartAreaInteractive() {
               <YAxis domain={isExpanded ? ["dataMin", "dataMax"] : undefined} hide />
               <Area
                 dataKey="price"
-                type="natural"
                 fill="url(#fillValue)"
                 stroke="var(--color-primary)"
               />
@@ -177,7 +195,6 @@ export function ChartAreaInteractive() {
       </Card>
 
       <ChartPie />
-
     </div>
   )
 }

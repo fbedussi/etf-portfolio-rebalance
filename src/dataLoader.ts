@@ -51,7 +51,7 @@ export function useLoadPortfolio() {
                                 category: "bonds",
                             },
                             transactions: [{
-                                date: "2024-11-15",
+                                date: "2025-11-15",
                                 quantity: 15,
                                 price: 163,
                             }],
