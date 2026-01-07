@@ -59,6 +59,10 @@ export function ChartAreaInteractive() {
   })).toSorted((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()), [data])
 
   const dataFiltered = useMemo(() => dataSorted.filter((item) => {
+    if (timeRange === "all") {
+      return item.price > 0
+    }
+
     const date = new Date(item.date)
     const referenceDate = new Date()
     let daysToSubtract = 90
@@ -95,6 +99,7 @@ export function ChartAreaInteractive() {
                 <ToggleGroupItem value="1m">Ultimo mese</ToggleGroupItem>
                 <ToggleGroupItem value="6m">Ultimi 6 mesi</ToggleGroupItem>
                 <ToggleGroupItem value="1y">Ultimo anno</ToggleGroupItem>
+                <ToggleGroupItem value="all">Tutto</ToggleGroupItem>
               </ToggleGroup>
               <Select value={timeRange} onValueChange={setTimeRange}>
                 <SelectTrigger
@@ -113,6 +118,9 @@ export function ChartAreaInteractive() {
                   </SelectItem>
                   <SelectItem value="1y" className="rounded-lg">
                     Ultimo anno
+                  </SelectItem>
+                  <SelectItem value="all" className="rounded-lg">
+                    Tutto
                   </SelectItem>
                 </SelectContent>
               </Select>
