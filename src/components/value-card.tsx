@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge"
 import {
   Card,
   CardAction,
+  CardContent,
   CardDescription,
   CardFooter,
   CardHeader,
@@ -35,10 +36,12 @@ export function ValueCard() {
           </Badge>
         </CardAction>
       </CardHeader>
-      <CardFooter className="flex-col items-start gap-1.5 text-sm">
+      <CardContent>
         <div className="line-clamp-1 flex gap-2 font-medium text-muted-foreground">
           Costo: <span className="text-primary">{formatMoney(cost)}</span>
         </div>
+      </CardContent>
+      <CardFooter className="items-start gap-1.5 text-sm flex-1 items-end">
         <div className="line-clamp-1 flex gap-2 font-medium text-muted-foreground items-center justify-between w-full">
           {!!date && <span>Dati aggiornati al <span className="text-primary">{formatDate(date)}</span></span>}
           <Button size="icon" variant="outline" onClick={() => {
