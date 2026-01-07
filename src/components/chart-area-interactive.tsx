@@ -22,8 +22,8 @@ import { ToggleGroup, ToggleGroupItem } from "./ui/toggle-group"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select"
 import { Checkbox } from "./ui/checkbox"
 import { Label } from "./ui/label"
-import type { Isin } from "@/model"
 import { useMemo } from "react"
+import { quantityAtDate } from "@/lib/portfolio"
 
 const chartConfig = {
   price: {
@@ -45,35 +45,20 @@ export function ChartAreaInteractive() {
     }
   }, [isMobile])
 
-  const quantityAtDate = (isin: Isin, date: string) => {
-    if (!portfolio) return 0
-
-    const etf = portfolio.etfs[isin]
-    if (!etf) return 0
-
-    let quantity = 0
-    for (const transaction of etf.transactions) {
-      if (transaction.date > date) {
-        break
-      }
-      quantity += transaction.quantity
-    }
-    return quantity
-  }
-
-  const chartData = useMemo(() => Object.entries(prices).reduce((result, [isin, { history }]) => {
+  const data = useMemo(() => Object.entries(prices).reduce((result, [isin, { history }]) => {
+    const transactions = portfolio?.etfs[isin].transactions || []
     history.forEach(({ date, price }) => {
-      result[date] = (result[date] || 0) + (price * quantityAtDate(isin, date))
+      result[date] = (result[date] || 0) + (price * quantityAtDate(transactions, date))
     })
     return result
-  }, {} as Record<string, number>), [prices])
+  }, {} as Record<string, number>), [portfolio, prices])
 
-  const chartDataSorted = useMemo(() => Object.entries(chartData).map(([date, price]) => ({
+  const dataSorted = useMemo(() => Object.entries(data).map(([date, price]) => ({
     date,
     price,
-  })).toSorted((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()), [chartData])
+  })).toSorted((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()), [data])
 
-  const data = useMemo(() => chartDataSorted.filter((item) => {
+  const dataFiltered = useMemo(() => dataSorted.filter((item) => {
     const date = new Date(item.date)
     const referenceDate = new Date()
     let daysToSubtract = 90
@@ -87,7 +72,7 @@ export function ChartAreaInteractive() {
     const startDate = new Date(referenceDate)
     startDate.setDate(startDate.getDate() - daysToSubtract)
     return date >= startDate
-  }), [chartDataSorted, timeRange])
+  }), [dataSorted, timeRange])
 
   return (
     <div className="*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-1 gap-4 px-4 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs lg:px-6 @xl/main:grid-cols-2">
@@ -139,7 +124,7 @@ export function ChartAreaInteractive() {
             config={chartConfig}
             className="aspect-auto h-[250px] w-full h-full"
           >
-            <AreaChart data={data}>
+            <AreaChart data={dataFiltered}>
               <defs>
                 <linearGradient id="fillValue" x1="0" y1="0" x2="0" y2="1">
                   <stop

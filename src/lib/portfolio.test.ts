@@ -1,7 +1,8 @@
 /// <reference types="node" />
 import assert from 'node:assert/strict';
 import { test, describe } from 'node:test';
-import { getDriftDataByAssetClass } from './portfolio.ts';
+import { getDriftDataByAssetClass, quantityAtDate } from './portfolio.ts';
+import type { Transaction } from '@/model.ts';
 
 describe('getDriftDataByAssetClass', () => {
     const targetAllocation = {
@@ -124,4 +125,21 @@ describe('getDriftDataByAssetClass', () => {
         }]);
     })
 
+})
+
+describe('quantityAtDate', () => {
+    test('returns 0 if no transactions', () => {
+        assert.strictEqual(quantityAtDate([], '2020-01-01'), 0)
+    })
+    test('returns 0 if no transactions before the date', () => {
+        assert.strictEqual(quantityAtDate([
+            { date: '2020-01-02', quantity: 1 } as Transaction,
+        ], '2020-01-01'), 0)
+    })
+    test('returns the sum of the quantities of the transactions before the date', () => {
+        assert.strictEqual(quantityAtDate([
+            { date: '2020-01-01', quantity: 1 } as Transaction,
+            { date: '2020-01-02', quantity: 2 } as Transaction,
+        ], '2020-01-02'), 3)
+    })
 })

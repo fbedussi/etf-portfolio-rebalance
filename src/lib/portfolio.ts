@@ -1,4 +1,4 @@
-import type { AssetClassCategory } from "@/model";
+import type { AssetClassCategory, Transaction } from "@/model";
 
 export function getDriftDataByAssetClass(
     targetAllocation: Record<AssetClassCategory, number> | undefined,
@@ -82,3 +82,14 @@ export function getDriftDataByAssetClass(
             : null,
     }))
 }
+
+export const quantityAtDate = (transactions: Transaction[], date: string) => {
+    let quantity = 0
+    for (const transaction of transactions) {
+      if (transaction.date > date) {
+        break
+      }
+      quantity += transaction.quantity
+    }
+    return quantity
+  }
