@@ -2,11 +2,15 @@ export type Isin = string
 
 export type AssetClassCategory = string
 
+export type Country = string
+
 export type IsoDate = string
 
 export type Portfolio = {
+  _id: string
   name: string
-  targetAllocation: Record<AssetClassCategory, number> // category -> percentage
+  targetAssetClassAllocation: Record<AssetClassCategory, number> // category -> percentage
+  targetCountryAllocation: Record<Country, number> // country -> percentage
   maxDrift: number // in percentage, e.g 10 means 10%
   etfs: Record<Isin, ETF>
 }
@@ -15,6 +19,7 @@ export type ETF = {
   isin: string
   name: string
   assetClass: AssetClass
+  countries: Record<Country, number> // country -> percentage
   transactions: Transaction[]
 }
 
@@ -35,7 +40,7 @@ export type CurrentPrices = Record<Isin, {
   history: { price: number, date: string }[]
 }>
 
-export type ApiResponse<T> = {data: T} | {error: Error}
+export type ApiResponse<T> = { data: T } | { error: Error }
 
 export type PricesApiResponse = {
   transco: {

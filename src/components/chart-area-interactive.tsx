@@ -1,6 +1,6 @@
 import * as React from "react"
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts"
-import { ChartPie } from './pie-chart'
+import { ChartPie } from './pie-chart-asset-class'
 
 import { useIsMobile } from "@/hooks/use-mobile"
 import {

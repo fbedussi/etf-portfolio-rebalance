@@ -19,13 +19,18 @@ export function useLoadPortfolio() {
                 Store.setPortfolio(cachedPortfolios[0])
             } else {
                 const demoPortfolio = {
+                    _id: 'demo-portfolio-1',
                     name: 'Fra2',
-                    targetAllocation: {
+                    targetAssetClassAllocation: {
                         stocks: 50,
                         bonds: 45,
                         // corporateBonds: 20,
                         // governmentBonds: 25,
                         gold: 5
+                    },
+                    targetCountryAllocation: {
+                        'US': 50,
+                        'others': 50,
                     },
                     maxDrift: 10,
                     etfs: {
@@ -35,6 +40,10 @@ export function useLoadPortfolio() {
                             assetClass: {
                                 name: "Global developed stocks markets",
                                 category: "stocks",
+                            },
+                            countries: {
+                                'US': 68.96,
+                                'others': 31.04,
                             },
                             transactions: [{
                                 date: "2025-10-28",
@@ -50,13 +59,33 @@ export function useLoadPortfolio() {
                                 // category: "corporateBonds",
                                 category: "bonds",
                             },
+                            countries: {
+                                'US': 15.33,
+                                'others': 84.67,
+                            },
                             transactions: [{
                                 date: "2025-11-15",
                                 quantity: 15,
                                 price: 163,
                             }],
-                        }
-                    },
+                        },
+                        IE0006WW1TQ4: {
+                            isin: 'IE0006WW1TQ4',
+                            name: 'Xtrackers MSCI World ex USA UCITS ETF 1C',
+                            assetClass: {
+                                name: "Azioni mercati sviluppati escluso USA",
+                                category: "stocks",
+                            },
+                            countries: {
+                                'others': 100,
+                            },
+                            transactions: [{
+                                date: "2025-12-01",
+                                quantity: 21,
+                                price: 36.36,
+                            }],
+                        },
+                    }
                 }
                 Cache.savePortfolio(demoPortfolio)
                 Store.setPortfolio(demoPortfolio)

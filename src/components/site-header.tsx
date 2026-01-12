@@ -1,10 +1,11 @@
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
-import { usePortfolioName } from "@/store"
+import { deletePortfolio } from "@/services/cacheService"
+import { usePortfolio } from "@/store"
 import { CompassIcon, FileUpIcon } from "lucide-react"
 
 export function SiteHeader() {
-  const portfolioName = usePortfolioName()
+  const portfolio = usePortfolio()
 
   return (
     <header className="flex h-(--header-height) shrink-0 items-center gap-2 border-b transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-(--header-height)">
@@ -18,10 +19,16 @@ export function SiteHeader() {
           className="mx-2 data-[orientation=vertical]:h-4"
         />
         <h1 className="text-base font-medium">
-          <span className="hidden md:inline">Portafoglio corrente: </span>{portfolioName}
+          <span className="hidden md:inline">Portafoglio corrente: </span>{portfolio?.name}
         </h1>
         <div className="ml-auto flex items-center gap-2">
-          <Button variant="outline" size="icon" aria-label="Submit">
+          <Button 
+          onClick={() => {
+              if (!portfolio) return
+              deletePortfolio(portfolio._id)
+              // useLoadPortfolio()
+            }}
+          variant="outline" size="icon" aria-label="Submit">
             <FileUpIcon />
           </Button>
         </div>

@@ -1,6 +1,6 @@
 
 import { ValueCard } from "./value-card"
-import { DriftCard } from "./drift-card"
+import { DriftCard } from "./drift-card-asset-class"
 
 export function SectionCards() {
   return (

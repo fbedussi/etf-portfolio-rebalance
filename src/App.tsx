@@ -6,9 +6,11 @@ import {
   SidebarProvider,
 } from "@/components/ui/sidebar"
 import { useLoadPortfolio, useLoadPrices } from "./dataLoader"
+import { DriftCardCountry } from "./components/drift-card-country"
+import { PieChartCountry } from "./components/pie-chart-country"
 
 export default function App() {
-  useLoadPortfolio()  
+  useLoadPortfolio()
   useLoadPrices()
 
   return (
@@ -28,6 +30,10 @@ export default function App() {
               <SectionCards />
               <ChartAreaInteractive />
               <DataTable />
+              <div className="*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-1 gap-4 px-4 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs lg:px-6 @xl/main:grid-cols-2">
+                <DriftCardCountry />
+                <PieChartCountry />
+              </div>
             </div>
           </div>
         </div>

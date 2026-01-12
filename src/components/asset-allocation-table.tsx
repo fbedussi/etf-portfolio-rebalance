@@ -7,11 +7,11 @@ import {
     TableRow,
 } from "@/components/ui/table"
 import { assetClassCategoryToString } from "@/lib/utils"
-import { useAssetClassColors, useCurrentAllocation, useTargetAllocation } from "@/store"
+import { useAssetClassColors, useCurrentAssetClassAllocation, useTargetAssetClassAllocation } from "@/store"
 
 export function AssetAllocationTable() {
-    const targetAllocation = useTargetAllocation()
-    const currentAllocation = useCurrentAllocation()
+    const targetAllocation = useTargetAssetClassAllocation()
+    const currentAllocation = useCurrentAssetClassAllocation()
     const assetClassColors = useAssetClassColors()
 
     const assetClasses = [...new Set(Object.keys(targetAllocation).concat(Object.keys(currentAllocation)))]
@@ -32,7 +32,9 @@ export function AssetAllocationTable() {
                         <TableCell className="font-medium flex items-center gap-2"><div className="w-2 h-2 rounded-full" style={{ backgroundColor: `var(--${assetClassColors[assetClass]})` }}></div> {assetClassCategoryToString(assetClass)}</TableCell>
                         <TableCell>{targetAllocation[assetClass]?.toFixed(0) || '0'}%</TableCell>
                         <TableCell>{currentAllocation[assetClass]?.toFixed(0) || '0'}%</TableCell>
-                        <TableCell className="text-right">{((targetAllocation[assetClass] || 0 - currentAllocation[assetClass] || 0) / (targetAllocation[assetClass] || 0) * 100).toFixed(0)}%</TableCell>
+                        <TableCell className="text-right">
+                            {(((currentAllocation[assetClass] || 0) - (targetAllocation[assetClass] || 0)) / (targetAllocation[assetClass] || 1) * 100).toFixed(0)}%
+                        </TableCell>
                     </TableRow>
                 ))}
             </TableBody>

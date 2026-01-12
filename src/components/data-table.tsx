@@ -8,7 +8,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { assetClassCategoryToString, formatMoney } from "@/lib/utils"
-import { useAssetClassColors, useCurrentEtfData, usePortfolio, usePrices } from "@/store"
+import { useAssetClassColors, useCurrentEtfData } from "@/store"
 
 
 function Row({ name, isin, assetClass, quantity, paidValue, currentValue }: {

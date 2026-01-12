@@ -14,17 +14,16 @@ import {
     ChartTooltipContent,
     type ChartConfig,
 } from "@/components/ui/chart"
-import { AssetAllocationTable } from "./asset-allocation-table"
-import { useAssetClassColors, useCurrentAllocation, useTargetAllocation } from "@/store"
+import { useCountryColors, useCurrentCountryAllocation, useTargetCountryAllocation } from "@/store"
 import type { AssetClassCategory } from "@/model"
-import { assetClassCategoryToString } from "@/lib/utils"
+import { CountryTable } from "./country-table"
 
-export function ChartPie() {
-    const targetAllocation = useTargetAllocation()
-    const currentAllocation = useCurrentAllocation()
-    const colors = useAssetClassColors()
+export function PieChartCountry() {
+    const targetAllocation = useTargetCountryAllocation()
+    const currentAllocation = useCurrentCountryAllocation()
+    const colors = useCountryColors()
 
-    const assetClasses = [...new Set(Object.keys(targetAllocation).concat(Object.keys(currentAllocation)))]
+    const countries = [...new Set(Object.keys(targetAllocation).concat(Object.keys(currentAllocation)))]
 
     const chartConfig = {
         allocation: {
@@ -36,10 +35,10 @@ export function ChartPie() {
         actual: {
             label: "Corrente",
         },
-        ...assetClasses.reduce((result, assetClass) => {
-            result[assetClass] = {
-                label: assetClassCategoryToString(assetClass),
-                color: `var(--${colors[assetClass]})`,
+        ...countries.reduce((result, country) => {
+            result[country] = {
+                label: country,
+                color: `var(--${colors[country]})`,
             }
             return result
         }, {} as Record<AssetClassCategory, { label: string, color: string }>),
@@ -59,7 +58,7 @@ export function ChartPie() {
     return (
         <Card className="flex flex-col">
             <CardHeader className="items-center pb-0">
-                <CardTitle>Allocazione asset class corrente</CardTitle>
+                <CardTitle>Azionario: allocazione paesi attuale</CardTitle>
                 <CardDescription>vs obiettivo</CardDescription>
             </CardHeader>
             <CardContent className="flex-1 pb-0">
@@ -93,7 +92,7 @@ export function ChartPie() {
                 </ChartContainer>
             </CardContent>
             <CardFooter>
-                <AssetAllocationTable />
+                <CountryTable />
             </CardFooter>
         </Card>
     )
