@@ -18,6 +18,27 @@ export const useStore = create<State>()(devtools(() => ({
 
 export const setPortfolio = (portfolio: Portfolio) => useStore.setState({ portfolio })
 
+export const setEftQuantity = (isin: string, quantity: number) => useStore.setState(state => {
+    return !state.portfolio?.etfs[isin]
+        ? state
+        : {
+        portfolio: {
+            ...state.portfolio,
+            etfs: {
+                ...state.portfolio?.etfs,
+                [isin]: {
+                    ...state.portfolio?.etfs[isin],
+                    transactions: state.portfolio?.etfs[isin].transactions.concat([{
+                        quantity,
+                        price: state.prices[isin]?.price || 0,
+                        date: new Date().toISOString(),
+                    }]) || []
+                },
+            }
+        }
+    }
+})
+
 const selectPortfolio = (state: State) => state.portfolio
 
 export const usePortfolio = () => useStore(selectPortfolio)

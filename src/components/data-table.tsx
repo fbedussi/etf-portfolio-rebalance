@@ -8,7 +8,8 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { assetClassCategoryToString, formatMoney } from "@/lib/utils"
-import { useAssetClassColors, useCurrentEtfData } from "@/store"
+import { setEftQuantity, useAssetClassColors, useCurrentEtfData } from "@/store"
+import { Input } from "./ui/input"
 
 
 function Row({ name, isin, assetClass, quantity, paidValue, currentValue }: {
@@ -30,7 +31,7 @@ function Row({ name, isin, assetClass, quantity, paidValue, currentValue }: {
       <TableCell><a href={`https://www.borsaitaliana.it/borsa/etf/scheda/${isin}.html?lang=it`} target='_blank'>{name}</a></TableCell>
       <TableCell>{isin}</TableCell>
       <TableCell><Badge variant="outline" className={['text-white', 'px-1.5', color === 'chart-1' && 'bg-chart-1', color === 'chart-2' && 'bg-chart-2'].join(' ')}>{assetClassCategoryToString(assetClass)}</Badge></TableCell>
-      <TableCell>{quantity}</TableCell>
+      <TableCell><Input value={quantity} onChange={(e) => setEftQuantity(isin, Number(e.target.value) - quantity)} type="number" step={1} /></TableCell>
       <TableCell>{formatMoney(paidValue)}</TableCell>
       <TableCell>{formatMoney(currentValue)}</TableCell>
       <TableCell><Badge variant="outline" className={`px-1.5 ${currentValueProfit > 0 ? 'bg-green-500' : 'bg-red-500 text-white'}`}>{(currentValueProfit).toFixed(2)} €</Badge></TableCell>
