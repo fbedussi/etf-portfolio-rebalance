@@ -28,7 +28,7 @@ import { Alert, AlertDescription, AlertTitle } from "./ui/alert"
 export function DriftCard() {
   const maxDrift = useMaxDrift()
   const currentDrift = useDriftData()
-  const [rebalanceStrategy, setRebalanceStrategy] = useState<'buyAndSell' | 'buy' | 'sell'>('buyAndSell')
+  const [rebalanceStrategy, setRebalanceStrategy] = useState<'buyAndSell' | 'buy' | 'sell'>('buy')
   const maxCurrentDrift = Math.max(...Object.values(currentDrift).map((drift) => drift.percentage))
 
   const renderAmountToBuy = (drifAmount: number, amountToBuyToCompensate: number | null) => {
@@ -73,7 +73,7 @@ export function DriftCard() {
               : <><ThumbsUpIcon className="stroke-green-500" /> Non ribilanciare</>}
           </div>
         </CardTitle>
-        <RadioGroup defaultValue="buyAndSell" orientation="horizontal" className="flex gap-5" onValueChange={val => {
+        <RadioGroup value={rebalanceStrategy} orientation="horizontal" className="flex gap-5" onValueChange={val => {
           switch (val) {
             case 'buyAndSell':
               setRebalanceStrategy('buyAndSell')
