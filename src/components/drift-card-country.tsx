@@ -14,7 +14,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { AlertCircleIcon, CircleAlertIcon, MoveDownIcon, MoveUpIcon, ThumbsUpIcon } from "lucide-react"
-import { useDriftData, useMaxDrift } from "@/store"
+import { useCountryDriftData, useDriftData, useMaxDrift } from "@/store"
 import { assetClassCategoryToString, formatMoney } from "@/lib/utils"
 import { Label } from "./ui/label"
 import { useState } from "react"
@@ -27,8 +27,8 @@ import { Alert, AlertDescription, AlertTitle } from "./ui/alert"
 
 export function DriftCardCountry() {
   const maxDrift = useMaxDrift()
-  const currentDrift = useDriftData()
-  const [rebalanceStrategy, setRebalanceStrategy] = useState<'buyAndSell' | 'buy' | 'sell'>('buyAndSell')
+  const currentDrift = useCountryDriftData()
+  const [rebalanceStrategy, setRebalanceStrategy] = useState<'buyAndSell' | 'buy' | 'sell'>('buy')
   const maxCurrentDrift = Math.max(...Object.values(currentDrift).map((drift) => drift.percentage))
 
   const renderAmountToBuy = (drifAmount: number, amountToBuyToCompensate: number | null) => {
@@ -73,7 +73,7 @@ export function DriftCardCountry() {
               : <><ThumbsUpIcon className="stroke-green-500" /> Non ribilanciare</>}
           </div>
         </CardTitle>
-        <RadioGroup defaultValue="buyAndSell" orientation="horizontal" className="flex gap-5" onValueChange={val => {
+        <RadioGroup value={rebalanceStrategy} orientation="horizontal" className="flex gap-5" onValueChange={val => {
           switch (val) {
             case 'buyAndSell':
               setRebalanceStrategy('buyAndSell')
@@ -108,7 +108,7 @@ export function DriftCardCountry() {
             <p>Il tuo portafoglio non può essere ribilanciato vendendo perché alcune asset class mancano nel portafoglio e devono quindi essere necessariamente acquistate:</p>
             <ul className="list-inside list-disc text-sm">
               {currentDrift.filter((drift) => drift.amountToSellToCompensate === null).map((drift) => (
-                <li key={drift.assetClass}>{assetClassCategoryToString(drift.assetClass)}</li>
+                <li key={drift.country}>{drift.country}</li>
               ))}
             </ul>
             <p>Se desideri ribilanciare il portafoglio, seleziona "Acquisto/Vendita" o "Acquisto".</p>
@@ -121,7 +121,7 @@ export function DriftCardCountry() {
             <p>Il tuo portafoglio non può essere ribilanciato acquistando perché alcune asset class presenti nel portafoglio non sono presenti nell'obbiettivo e devono quindi essere necessariamente vendute:</p>
             <ul className="list-inside list-disc text-sm">
               {currentDrift.filter((drift) => drift.amountToBuyToCompensate === null).map((drift) => (
-                <li key={drift.assetClass}>{assetClassCategoryToString(drift.assetClass)}</li>
+                <li key={drift.country}>{drift.country}</li>
               ))}
             </ul>
             <p>Se desideri ribilanciare il portafoglio, seleziona "Acquisto/Vendita" o "Vendita".</p>
@@ -138,16 +138,16 @@ export function DriftCardCountry() {
             </TableRow>
           </TableHeader>
           <TableBody className="**:data-[slot=table-cell]:first:w-8">
-            {currentDrift.map(({ assetClass, drifAmount, amountToBuyToCompensate, amountToSellToCompensate, percentage }) => (
-              <TableRow key={assetClass} className="relative z-0">
+            {currentDrift.map(({ country, driftAmount, amountToBuyToCompensate, amountToSellToCompensate, percentage }) => (
+              <TableRow key={country} className="relative z-0">
                 <TableCell>{percentage > 0
                   ? <MoveDownIcon className="size-4 stroke-red-500" />
                   : <MoveUpIcon className="size-4 stroke-green-500" />}
                 </TableCell>
-                <TableCell>{assetClassCategoryToString(assetClass)}</TableCell>
+                <TableCell>{country}</TableCell>
                 <TableCell>{percentage.toFixed(0)}%</TableCell>
-                <TableCell>{renderAmountToBuy(drifAmount, amountToBuyToCompensate)}</TableCell>
-                <TableCell>{renderAmountToSell(drifAmount, amountToSellToCompensate)}</TableCell>
+                <TableCell>{renderAmountToBuy(driftAmount, amountToBuyToCompensate)}</TableCell>
+                <TableCell>{renderAmountToSell(driftAmount, amountToSellToCompensate)}</TableCell>
               </TableRow>
             ))}
           </TableBody>

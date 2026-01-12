@@ -138,7 +138,7 @@ export function DriftCard() {
             </TableRow>
           </TableHeader>
           <TableBody className="**:data-[slot=table-cell]:first:w-8">
-            {currentDrift.map(({ assetClass, drifAmount, amountToBuyToCompensate, amountToSellToCompensate, percentage }) => (
+            {currentDrift.map(({ assetClass, driftAmount, amountToBuyToCompensate, amountToSellToCompensate, percentage }) => (
               <TableRow key={assetClass} className="relative z-0">
                 <TableCell>{percentage > 0
                   ? <MoveDownIcon className="size-4 stroke-red-500" />
@@ -146,8 +146,8 @@ export function DriftCard() {
                 </TableCell>
                 <TableCell>{assetClassCategoryToString(assetClass)}</TableCell>
                 <TableCell>{percentage.toFixed(0)}%</TableCell>
-                <TableCell>{renderAmountToBuy(drifAmount, amountToBuyToCompensate)}</TableCell>
-                <TableCell>{renderAmountToSell(drifAmount, amountToSellToCompensate)}</TableCell>
+                <TableCell>{renderAmountToBuy(driftAmount, amountToBuyToCompensate)}</TableCell>
+                <TableCell>{renderAmountToSell(driftAmount, amountToSellToCompensate)}</TableCell>
               </TableRow>
             ))}
           </TableBody>

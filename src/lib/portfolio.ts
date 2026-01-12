@@ -6,7 +6,7 @@ export function getDriftDataByAssetClass(
 ): {
     assetClass: string,
     // positive is more than the targer, so to sell
-    drifAmount: number,
+    driftAmount: number,
     // drift percentage, positive is more than the target
     percentage: number,
     // amount to buy to rebalance investing new cash, without selling any other asset. It is always positive
@@ -45,7 +45,7 @@ export function getDriftDataByAssetClass(
             assetClass,
             currentValue,
             targetAllocationPercentage,
-            drifAmount: currentValue - targetValue,
+            driftAmount: currentValue - targetValue,
             percentage: Number(driftPercentage.toFixed(2)),
         }
     })
@@ -58,7 +58,7 @@ export function getDriftDataByAssetClass(
     // if an asset class is not in the portfolio it is impossible to compensate the drift without buying it or changing the target
     const isItPossibleToCompensateWithSellStrategy = assetClassesInTarget.every(key => assetClassesInPortfolio.includes(key))
 
-    const sortedDrifts = drifts.toSorted((a, b) => a.drifAmount - b.drifAmount)
+    const sortedDrifts = drifts.toSorted((a, b) => a.driftAmount - b.driftAmount)
     const assetClassWithLowestDrift = sortedDrifts.at(0)
     const assetClassWithHighestDrift = sortedDrifts.at(-1)
     const newPorfolioValue_buyStrategy = isItPossibleToCompensateWithBuyStrategy && assetClassWithHighestDrift
@@ -70,9 +70,9 @@ export function getDriftDataByAssetClass(
         : portfolioValue
 
 
-    return drifts.map(({ assetClass, currentValue, drifAmount, targetAllocationPercentage, percentage }) => ({
+    return drifts.map(({ assetClass, currentValue, driftAmount, targetAllocationPercentage, percentage }) => ({
         assetClass,
-        drifAmount,
+        driftAmount,
         percentage,
         amountToBuyToCompensate: isItPossibleToCompensateWithBuyStrategy
             ? Number(((newPorfolioValue_buyStrategy / 100 * targetAllocationPercentage) - currentValue).toFixed(2))

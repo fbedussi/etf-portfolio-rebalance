@@ -22,21 +22,21 @@ export const setEftQuantity = (isin: string, quantity: number) => useStore.setSt
     return !state.portfolio?.etfs[isin]
         ? state
         : {
-        portfolio: {
-            ...state.portfolio,
-            etfs: {
-                ...state.portfolio?.etfs,
-                [isin]: {
-                    ...state.portfolio?.etfs[isin],
-                    transactions: state.portfolio?.etfs[isin].transactions.concat([{
-                        quantity,
-                        price: state.prices[isin]?.price || 0,
-                        date: new Date().toISOString(),
-                    }]) || []
-                },
+            portfolio: {
+                ...state.portfolio,
+                etfs: {
+                    ...state.portfolio?.etfs,
+                    [isin]: {
+                        ...state.portfolio?.etfs[isin],
+                        transactions: state.portfolio?.etfs[isin].transactions.concat([{
+                            quantity,
+                            price: state.prices[isin]?.price || 0,
+                            date: new Date().toISOString(),
+                        }]) || []
+                    },
+                }
             }
         }
-    }
 })
 
 const selectPortfolio = (state: State) => state.portfolio
@@ -145,9 +145,26 @@ const selectDriftData = createSelector(selectTargetAssetClassAllocation, selectC
 
 export const useDriftData = () => useStore(selectDriftData)
 
+
 export const useTargetAssetClassAllocation = () => useStore(useShallow((state: State) => state.portfolio?.targetAssetClassAllocation || {}))
 
-export const useTargetCountryAllocation = () => useStore(useShallow((state: State) => state.portfolio?.targetCountryAllocation || {}))
+const selectTargetCountryAllocation = (state: State) => state.portfolio?.targetCountryAllocation || {}
+
+export const useTargetCountryAllocation = () => useStore(useShallow(selectTargetCountryAllocation))
+
+const selectCurrentValuesByCountry = (state: State) => {
+    const currentCountryValue = Object.values(state.portfolio?.etfs || {})
+        .filter(etf => etf.assetClass.category === 'stocks')
+        .reduce((result, etf) => {
+            const quantity = etf.transactions.reduce((sum, { quantity }) => sum += quantity, 0)
+            Object.entries(etf.countries).forEach(([country, percentage]) => {
+                result[country] = (result[country] || 0) + quantity * (state.prices[etf.isin]?.price * percentage / 100 || 0)
+            })
+            return result
+        }, {} as Record<Country, number>)
+
+    return currentCountryValue
+}
 
 const selectCurrentAssetClassAllocation = (state: State) => {
     const currentPortfolioValue = selectCurrentPortfolioValue(state)
@@ -166,29 +183,83 @@ const selectCurrentAssetClassAllocation = (state: State) => {
     return currentAllocationByAssetClass
 }
 
-const selectCurrentCountryAllocation = (state: State) => {
-    const currentPortfolioValue = selectCurrentPortfolioValueForCountryAllocation(state)
-    const currentCountryValue = Object.values(state.portfolio?.etfs || {})
-        .filter(etf => etf.assetClass.category === 'stocks')
-        .reduce((result, etf) => {
-            const quantity = etf.transactions.reduce((sum, { quantity }) => sum += quantity, 0)
-            Object.entries(etf.countries).forEach(([country, percentage]) => {
-                result[country] = (result[country] || 0) + quantity * (state.prices[etf.isin]?.price * percentage / 100 || 0)
-            })
-            return result
-        }, {} as Record<Country, number>)
-
+const selectCurrentCountryAllocation = createSelector(selectCurrentPortfolioValueForCountryAllocation, selectCurrentValuesByCountry, (currentPortfolioValue, currentCountryValue) => {
     const currentAllocationByCountry = Object.entries(currentCountryValue).reduce((result, [country, value]) => {
         result[country] = value / currentPortfolioValue * 100
         return result
     }, {} as Record<Country, number>)
 
     return currentAllocationByCountry
-}
+})
 
 export const useCurrentAssetClassAllocation = () => useStore(useShallow(selectCurrentAssetClassAllocation))
 
 export const useCurrentCountryAllocation = () => useStore(useShallow(selectCurrentCountryAllocation))
+
+const selectCountryDriftData = createSelector(
+    selectCurrentPortfolioValueForCountryAllocation,
+    selectTargetCountryAllocation,
+    selectCurrentValuesByCountry,
+    selectCurrentCountryAllocation,
+    (
+        currentPortfolioValue,
+        targetCountryAllocation,
+        currentValueByCountry,
+        currentPercentageByCountry,
+    ) => {
+        const drifts = Object.entries(targetCountryAllocation).map(([country, targetPercentage]) => {
+            const percentageDelta = currentPercentageByCountry[country] - targetCountryAllocation[country]
+
+            const driftPercentage = targetCountryAllocation[country]
+                ? percentageDelta / targetCountryAllocation[country] * 100
+                : 100
+
+            return {
+                country,
+                currentValue: currentValueByCountry[country],
+                targetAllocationPercentage: targetPercentage,
+                driftAmount: currentValueByCountry[country] - (targetPercentage / 100 * currentPortfolioValue),
+                percentage: Number(driftPercentage.toFixed(2)),
+            }
+        })
+
+        const countriesInPortfolio = Object.keys(currentValueByCountry)
+
+        const countiresInTarget = Object.keys(targetCountryAllocation)
+
+        // if country is not in the target it is impossible to compensate the drift without selling it or changing the target
+        const isItPossibleToCompensateWithBuyStrategy = countriesInPortfolio.every(key => countiresInTarget.includes(key))
+
+        // if country is not in the portfolio it is impossible to compensate the drift without buying it or changing the target
+        const isItPossibleToCompensateWithSellStrategy = countiresInTarget.every(key => countriesInPortfolio.includes(key))
+
+        const sortedDrifts = drifts.toSorted((a, b) => a.driftAmount - b.driftAmount)
+        const countryWithLowestDrift = sortedDrifts.at(0)
+        const countryWithHighestDrift = sortedDrifts.at(-1)
+        const newPorfolioValue_buyStrategy = isItPossibleToCompensateWithBuyStrategy && countryWithHighestDrift
+            ? countryWithHighestDrift.currentValue / countryWithHighestDrift.targetAllocationPercentage * 100
+            : currentPortfolioValue
+
+        const newPorfolioValue_sellStrategy = countryWithLowestDrift
+            ? countryWithLowestDrift.currentValue / countryWithLowestDrift.targetAllocationPercentage * 100
+            : currentPortfolioValue
+
+
+        return drifts.map(({ country, currentValue, driftAmount, targetAllocationPercentage, percentage }) => ({
+            country,
+            driftAmount,
+            percentage,
+            amountToBuyToCompensate: isItPossibleToCompensateWithBuyStrategy
+                ? Number(((newPorfolioValue_buyStrategy / 100 * targetAllocationPercentage) - currentValue).toFixed(2))
+                : null,
+            amountToSellToCompensate: isItPossibleToCompensateWithSellStrategy
+                ? Number((currentValue - (newPorfolioValue_sellStrategy / 100 * targetAllocationPercentage)).toFixed(2))
+                : null,
+        }))
+    })
+
+export const useCountryDriftData = () => useStore(selectCountryDriftData)
+
 
 export const useAssetClassColors = () => useStore(useShallow((state: State) => {
     const targetAssetClasses = Object.keys(state.portfolio?.targetAssetClassAllocation || {})
