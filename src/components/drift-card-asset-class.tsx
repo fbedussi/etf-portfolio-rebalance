@@ -68,7 +68,7 @@ export function DriftCard() {
         <CardDescription>Drift massimo {maxDrift}%</CardDescription>
         <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
           <div className="flex items-center gap-2">
-            {maxCurrentDrift > 0
+            {maxCurrentDrift > maxDrift
               ? <><CircleAlertIcon className="stroke-red-500" /> Ribilanciare</>
               : <><ThumbsUpIcon className="stroke-green-500" /> Non ribilanciare</>}
           </div>
