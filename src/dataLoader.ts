@@ -3,6 +3,7 @@ import * as Store from "./store";
 import * as Cache from "./services/cacheService"
 import * as Api from "./services/apiService"
 import { convertDt } from "./lib/utils";
+import type { CurrentPrice, Portfolio } from "./model";
 
 const ONE_DAY = 24 * 60 * 60 * 1000
 
@@ -18,7 +19,7 @@ export function useLoadPortfolio() {
             if (cachedPortfolios.length) {
                 Store.setPortfolio(cachedPortfolios[0])
             } else {
-                const demoPortfolio = {
+                const demoPortfolio: Portfolio = {
                     _id: 'demo-portfolio-1',
                     name: 'Fra2',
                     targetAssetClassAllocation: {
@@ -35,6 +36,7 @@ export function useLoadPortfolio() {
                     maxDrift: 10,
                     etfs: {
                         IE00B4L5Y983: {
+                            dataSource: 'borsaitaliana',
                             isin: 'IE00B4L5Y983',
                             name: 'iShares Core MSCI World UCITS',
                             assetClass: {
@@ -52,6 +54,7 @@ export function useLoadPortfolio() {
                             }],
                         },
                         LU0478205379: {
+                            dataSource: 'borsaitaliana',
                             isin: 'LU0478205379',
                             name: 'Xtrackers II EUR Corporate Bond UCITS ETF 1C',
                             assetClass: {
@@ -70,6 +73,7 @@ export function useLoadPortfolio() {
                             }],
                         },
                         IE0006WW1TQ4: {
+                            dataSource: 'borsaitaliana',
                             isin: 'IE0006WW1TQ4',
                             name: 'Xtrackers MSCI World ex USA UCITS ETF 1C',
                             assetClass: {
@@ -83,6 +87,21 @@ export function useLoadPortfolio() {
                                 date: "2025-12-01",
                                 quantity: 21,
                                 price: 36.36,
+                            }],
+                        },
+                        XS2852999775: {
+                            dataSource: 'justetf',
+                            isin: 'XS2852999775',
+                            name: 'IncomeShares Gold+ Yield ETP',
+                            assetClass: {
+                                name: "Oro",
+                                category: "gold",
+                            },
+                            countries: {},
+                            transactions: [{
+                                date: "2025-15-01",
+                                quantity: 1,
+                                price: 13.75,
                             }],
                         },
                     }
@@ -108,42 +127,74 @@ export function useLoadPrices() {
         }
 
         isins.forEach(async isin => {
-            const cachedData = !refreshPrices && await Cache.getCurrentPrices(isin)
-
-            const handleError = (error: Error) => {
-                // TODO: handle error in the store
-                console.error(error)
-                if (cachedData) {
-                    Store.setPrice(isin, cachedData.price, cachedData.history)
-                }
-            }
+            const cachedData = refreshPrices ? await Cache.getCurrentPrices(isin) : undefined
 
             if (!refreshPrices && cachedData && (Date.now() - new Date(cachedData.timestamp).getTime() < ONE_DAY)) {
                 Store.setPrice(isin, cachedData.price, cachedData.history)
             } else {
-                const freshData = await Api.getPrices(isin)
-
-                if ('error' in freshData) {
-                    handleError(freshData.error)
+                if (portfolio?.etfs[isin].dataSource === 'borsaitaliana') {
+                    fetchPricesFromBorsaItaliana(isin, cachedData)
                 } else {
-                    const history = freshData.data.history.historyDt.map(item => ({
-                        price: item.closePx,
-                        date: convertDt(item.dt),
-                    }))
-
-                    const lastPrice = history.at(-1)
-                    if (!lastPrice) {
-                        handleError(new Error(`No last price for ISIN ${isin}`))
-                        return
-                    }
-                    
-                    const timestamp = new Date().toISOString()
-                    Cache.saveCurrentPrices({ [isin]: { price: lastPrice.price, timestamp, history } })
-                    Store.setPrice(isin, lastPrice.price, history)
+                    fetchPricesFromJustEtf(isin, cachedData)
                 }
+
 
                 Store.setRefreshPrices(false)
             }
         })
     }, [isins, refreshPrices])
-}   
+}
+
+function handleError(isin: string, cachedData: CurrentPrice | undefined, error: Error) {
+    // TODO: handle error in the store
+    console.error(error)
+    if (cachedData) {
+        Store.setPrice(isin, cachedData.price, cachedData.history)
+    }
+}
+
+async function fetchPricesFromBorsaItaliana(isin: string, cachedData?: CurrentPrice) {
+    const freshData = await Api.getPricesBorsaItaliana(isin)
+
+    if ('error' in freshData) {
+        handleError(isin, cachedData, freshData.error)
+    } else {
+        const history = freshData.data.history.historyDt.map(item => ({
+            price: item.closePx,
+            date: convertDt(item.dt),
+        }))
+
+        const lastPrice = history.at(-1)
+        if (!lastPrice) {
+            handleError(isin, cachedData, new Error(`No last price for ISIN ${isin}`))
+            return
+        }
+
+        const timestamp = new Date().toISOString()
+        Cache.saveCurrentPrices({ [isin]: { price: lastPrice.price, timestamp, history } })
+        Store.setPrice(isin, lastPrice.price, history)
+    }
+}
+
+async function fetchPricesFromJustEtf(isin: string, cachedData?: CurrentPrice) {
+    const freshData = await Api.getPricesJustEtf(isin)
+
+    if ('error' in freshData) {
+        handleError(isin, cachedData, freshData.error)
+    } else {
+        const history = freshData.data.series.map(item => ({
+            price: item.value.raw,
+            date: item.date,
+        }))
+
+        const lastPrice = history.at(-1)
+        if (!lastPrice) {
+            handleError(isin, cachedData, new Error(`No last price for ISIN ${isin}`))
+            return
+        }
+
+        const timestamp = new Date().toISOString()
+        Cache.saveCurrentPrices({ [isin]: { price: lastPrice.price, timestamp, history } })
+        Store.setPrice(isin, lastPrice.price, history)
+    }
+}

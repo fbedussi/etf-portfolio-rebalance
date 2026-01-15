@@ -24,6 +24,7 @@ export function SiteHeader() {
         <div className="ml-auto flex items-center gap-2">
           <Button 
           onClick={() => {
+            debugger
               if (!portfolio) return
               deletePortfolio(portfolio._id)
               // useLoadPortfolio()

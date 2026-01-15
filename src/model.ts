@@ -16,6 +16,7 @@ export type Portfolio = {
 }
 
 export type ETF = {
+  dataSource: 'borsaitaliana' | 'justetf'
   isin: string
   name: string
   assetClass: AssetClass
@@ -34,11 +35,13 @@ export type Transaction = {
   price: number // price per unit in portfolio currency
 }
 
-export type CurrentPrices = Record<Isin, {
+export type CurrentPrices = Record<Isin, CurrentPrice>
+
+export type CurrentPrice = {
   price: number
   timestamp: IsoDate
   history: { price: number, date: string }[]
-}>
+}
 
 export type ApiResponse<T> = { data: T } | { error: Error }
 
@@ -103,4 +106,34 @@ export type IntradayPoint = {
   previousClosingDt: string, //"20251205"
   previousSettlementPx: number,
   previousSettlementDt: string, //"20251205
+}
+
+export type PricesApiResponseJustEtf = {
+  latestQuote: {
+    raw: number,
+    localized: string
+  },
+  latestQuoteDate: string,
+  price: {
+    raw: number,
+    localized: string
+  },
+  performance: {
+    raw: number,
+    localized: string
+  },
+  prevDaySeries: {
+    date: string,
+    value: {
+      raw: number,
+      localized: string
+    }
+  }[],
+  series: {
+    date: string,
+    value: {
+      raw: number,
+      localized: string
+    }
+  }[],
 }
