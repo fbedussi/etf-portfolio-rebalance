@@ -25,6 +25,30 @@ import { Label } from "./ui/label"
 import { useMemo } from "react"
 import { quantityAtDate } from "@/lib/portfolio"
 
+function isWorkingDay(date: string) {
+  const d = new Date(date)
+  const day = d.getDay()
+  const month = d.getMonth()
+  const dayOfMonth = d.getDate()
+
+  // Sunday (0) or Saturday (6)
+  if (day === 0 || day === 6) {
+    return false
+  }
+
+  // Christmas (Dec 24, 25, 26, 31)
+  if (month === 11 && [24,25,26,31].includes(dayOfMonth)) {
+    return false
+  }
+
+  // New Year (Jan 1)
+  if (month === 0 && dayOfMonth === 1) {
+    return false
+  }
+
+  return true
+}
+
 const chartConfig = {
   price: {
     label: "price",
@@ -48,7 +72,9 @@ export function ChartAreaInteractive() {
   const data = useMemo(() => Object.entries(prices).reduce((result, [isin, { history }]) => {
     const transactions = portfolio?.etfs[isin].transactions || []
     history.forEach(({ date, price }) => {
-      result[date] = (result[date] || 0) + (price * quantityAtDate(transactions, date))
+      if (isWorkingDay(date)) {
+        result[date] = (result[date] || 0) + (price * quantityAtDate(transactions, date))
+      }
     })
     return result
   }, {} as Record<string, number>), [portfolio, prices])
