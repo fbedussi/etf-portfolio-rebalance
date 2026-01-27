@@ -1,9 +1,10 @@
 import { create } from 'zustand'
-import type { AssetClassCategory, Country, CurrentPrices, Portfolio } from './model'
+import type { AssetClassCategory, Country, CurrentPrices, Isin, IsoDate, Portfolio } from './model'
 import { devtools } from 'zustand/middleware'
 import { useShallow } from 'zustand/shallow'
 import { createSelector } from "reselect";
-import { getDriftDataByAssetClass } from './lib/portfolio';
+import { calculateCurrentAssetClassAllocation, calculateCurrentEtfData, calculateCurrentPortfolioValue, calculateCurrentPortfolioValueForCountryAllocation, calculateCurrentValuesByCountry, calculatePortfolioCost, getDriftDataByAssetClass, pricesHistoryToMap, quantityAtDate } from './lib/portfolio';
+import dayjs from "dayjs";
 
 type State = {
     portfolio: Portfolio | null
@@ -64,52 +65,34 @@ export const usePrices = () => useStore(selectPrices)
 
 export const usePortfolioName = () => useStore((state: State) => state.portfolio?.name || '')
 
-export const useCurrentPortfolioCost = () => useStore((state: State) => {
-    const quantities = Object.values(state.portfolio?.etfs || {}).reduce((result, etf) => {
-        result[etf.isin] = etf.transactions.reduce((cost, transaction) => cost + transaction.quantity * transaction.price, 0)
+const selectEtfs = createSelector(selectPortfolio, portfolio => portfolio?.etfs || {})
+
+const selectPricesHistoryMap = createSelector(selectPrices, prices => {
+    return Object.entries(prices).reduce((result, [isin, price]) => {
+        result[isin] = pricesHistoryToMap(price.history)
         return result
-    }, {} as Record<string, number>/*isin, cost*/)
-
-    const value = Object.values(quantities).reduce((result, cost) => result += cost, 0)
-
-    return value
+    }, {} as Record<Isin, Record<IsoDate, number>>)
 })
 
-const selectCurrentPortfolioValue = (state: State) => {
-    const quantities = Object.values(state.portfolio?.etfs || {}).reduce((result, etf) => {
-        result[etf.isin] = etf.transactions.reduce((quantity, transaction) => quantity + transaction.quantity, 0)
-        return result
-    }, {} as Record<string, number>/*isin, quantity*/)
+const selectToday = () => dayjs().format('YYYY-MM-DD')
 
-    const value = Object.entries(quantities).reduce((result, [isin, quantity]) => result += (state.prices[isin]?.price || 0) * quantity, 0)
+const selectCurrentPortfolioCost = createSelector(selectEtfs, selectPricesHistoryMap, selectToday, calculatePortfolioCost)
 
-    return value
-}
+export const useCurrentPortfolioCost = () => useStore(selectCurrentPortfolioCost)
 
-const selectCurrentPortfolioValueForCountryAllocation = (state: State) => {
-    const quantities = Object.values(state.portfolio?.etfs || {})
-        .filter(etf => etf.assetClass.category === 'stocks')
-        .reduce((result, etf) => {
-            result[etf.isin] = etf.transactions.reduce((quantity, transaction) => quantity + transaction.quantity, 0)
-            return result
-        }, {} as Record<string, number>/*isin, quantity*/)
+const selectCurrentPortfolioValue = createSelector(selectEtfs, selectPrices, selectToday, calculateCurrentPortfolioValue)
 
-    const value = Object.entries(quantities).reduce((result, [isin, quantity]) => result += (state.prices[isin]?.price || 0) * quantity, 0)
+const selectCurrentPortfolioValueForCountryAllocation = createSelector(selectEtfs, selectPrices, selectToday, calculateCurrentPortfolioValueForCountryAllocation)
 
-    return value
-}
-
-
-
-const selectCurrentPortfolioValueDate = (state: State) => {
-    const date = Object.values(state.portfolio?.etfs || {}).reduce((result, etf) => {
-        const lastDateStr = state.prices[etf.isin]?.history.at(-1)?.date
+const selectCurrentPortfolioValueDate = createSelector(selectEtfs, selectPrices, (etfs, prices) => {
+    const date = Object.values(etfs).reduce((result, etf) => {
+        const lastDateStr = prices[etf.isin]?.history.at(-1)?.date
         const lastDate = lastDateStr ? new Date(lastDateStr) : null
 
         return !result || (lastDate && lastDate > result) ? lastDate : result
     }, null as null | Date)
     return date
-}
+})
 
 export const useCurrentPortfolioValue = () => useStore(selectCurrentPortfolioValue)
 
@@ -118,19 +101,7 @@ export const useCurrentPortfolioValueDate = () => useStore(useShallow(selectCurr
 
 export const useMaxDrift = () => useStore((state: State) => state.portfolio?.maxDrift || 0)
 
-const selectCurretEtfData = createSelector(selectPortfolio, selectPrices, (portfolio, prices) => {
-    return (Object.values(portfolio?.etfs || {})).map(etf => {
-        const quantity = etf.transactions.reduce((sum, { quantity }) => sum += quantity, 0)
-        return {
-            name: etf.name,
-            isin: etf.isin,
-            assetClass: etf.assetClass.category,
-            quantity,
-            paidValue: etf.transactions.reduce((sum, { quantity, price }) => sum += quantity * price, 0),
-            currentValue: quantity * (prices[etf.isin]?.price || 0)
-        }
-    })
-})
+const selectCurretEtfData = createSelector(selectEtfs, selectPrices, selectToday, calculateCurrentEtfData)
 
 export const useCurrentEtfData = () => useStore(selectCurretEtfData)
 
@@ -148,40 +119,13 @@ export const useDriftData = () => useStore(selectDriftData)
 
 export const useTargetAssetClassAllocation = () => useStore(useShallow((state: State) => state.portfolio?.targetAssetClassAllocation || {}))
 
-const selectTargetCountryAllocation = (state: State) => state.portfolio?.targetCountryAllocation || {}
+const selectTargetCountryAllocation = createSelector(selectPortfolio, portfolio => portfolio?.targetCountryAllocation || {})
 
 export const useTargetCountryAllocation = () => useStore(useShallow(selectTargetCountryAllocation))
 
-const selectCurrentValuesByCountry = (state: State) => {
-    const currentCountryValue = Object.values(state.portfolio?.etfs || {})
-        .filter(etf => etf.assetClass.category === 'stocks')
-        .reduce((result, etf) => {
-            const quantity = etf.transactions.reduce((sum, { quantity }) => sum += quantity, 0)
-            Object.entries(etf.countries).forEach(([country, percentage]) => {
-                result[country] = (result[country] || 0) + quantity * (state.prices[etf.isin]?.price * percentage / 100 || 0)
-            })
-            return result
-        }, {} as Record<Country, number>)
+const selectCurrentValuesByCountry = createSelector(selectEtfs, selectPrices, selectToday, calculateCurrentValuesByCountry)
 
-    return currentCountryValue
-}
-
-const selectCurrentAssetClassAllocation = (state: State) => {
-    const currentPortfolioValue = selectCurrentPortfolioValue(state)
-    const currentAssetClassValue = Object.values(state.portfolio?.etfs || {})
-        .reduce((result, etf) => {
-            const quantity = etf.transactions.reduce((sum, { quantity }) => sum += quantity, 0)
-            result[etf.assetClass.category] = (result[etf.assetClass.category] || 0) + quantity * (state.prices[etf.isin]?.price || 0)
-            return result
-        }, {} as Record<AssetClassCategory, number>)
-
-    const currentAllocationByAssetClass = Object.entries(currentAssetClassValue).reduce((result, [assetClass, value]) => {
-        result[assetClass] = value / currentPortfolioValue * 100
-        return result
-    }, {} as Record<AssetClassCategory, number>)
-
-    return currentAllocationByAssetClass
-}
+const selectCurrentAssetClassAllocation = createSelector(selectEtfs, selectPrices, selectToday, selectCurrentPortfolioValue, calculateCurrentAssetClassAllocation)
 
 const selectCurrentCountryAllocation = createSelector(selectCurrentPortfolioValueForCountryAllocation, selectCurrentValuesByCountry, (currentPortfolioValue, currentCountryValue) => {
     const currentAllocationByCountry = Object.entries(currentCountryValue).reduce((result, [country, value]) => {

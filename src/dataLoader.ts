@@ -51,7 +51,17 @@ export function useLoadPortfolio() {
                                 date: "2025-10-28",
                                 quantity: 14,
                                 price: 111,
+                            }, {
+                                date: "2026-01-16",
+                                quantity: 4,
+                                price: 114.68,
                             }],
+                            sip: {
+                                quantity: 1,
+                                dayOfMonth: 12,
+                                frequency: 12,
+                                startDate: "2026-01-16",
+                            }
                         },
                         LU0478205379: {
                             dataSource: 'borsaitaliana',
@@ -89,19 +99,19 @@ export function useLoadPortfolio() {
                                 price: 36.36,
                             }],
                         },
-                        XS2852999775: {
-                            dataSource: 'justetf',
-                            isin: 'XS2852999775',
-                            name: 'IncomeShares Gold+ Yield ETP',
+                        DE000A2T0VU5: {
+                            dataSource: 'borsaitaliana',
+                            isin: 'DE000A2T0VU5',
+                            name: 'Xtrackers IE Physical Gold ETC Securities',
                             assetClass: {
                                 name: "Oro",
                                 category: "gold",
                             },
                             countries: {},
                             transactions: [{
-                                date: "2025-15-01",
-                                quantity: 1,
-                                price: 13.75,
+                                date: "2025-19-01",
+                                quantity: 7,
+                                price: 61.76,
                             }],
                         },
                     }

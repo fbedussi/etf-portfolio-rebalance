@@ -14,8 +14,8 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { AlertCircleIcon, CircleAlertIcon, MoveDownIcon, MoveUpIcon, ThumbsUpIcon } from "lucide-react"
-import { useCountryDriftData, useDriftData, useMaxDrift } from "@/store"
-import { assetClassCategoryToString, formatMoney } from "@/lib/utils"
+import { useCountryDriftData, useMaxDrift } from "@/store"
+import { formatMoney } from "@/lib/utils"
 import { Label } from "./ui/label"
 import { useState } from "react"
 import {

@@ -1,4 +1,5 @@
-import type { AssetClassCategory, Transaction } from "@/model";
+import type { AssetClassCategory, Country, CurrentPrices, ETF, Isin, IsoDate, SIP, Transaction } from "@/model";
+import dayjs from "dayjs";
 
 export function getDriftDataByAssetClass(
     targetAllocation: Record<AssetClassCategory, number> | undefined,
@@ -83,13 +84,118 @@ export function getDriftDataByAssetClass(
     }))
 }
 
-export const quantityAtDate = (transactions: Transaction[], date: string) => {
+export const quantityAtDate = (transactions: Transaction[], date: string, sip?: SIP) => {
     let quantity = 0
     for (const transaction of transactions) {
-      if (transaction.date > date) {
-        break
-      }
-      quantity += transaction.quantity
+        if (transaction.date > date) {
+            break
+        }
+        quantity += transaction.quantity
     }
+
+    if (sip && sip.startDate <= date) {
+        const numberOfMonthsSinceStartDate = dayjs(date).diff(dayjs(sip.startDate), 'month') + 1 // since the start date is at least equal to the current date, if it is the same day it must be counted        
+        const numberOfPurchases = Math.floor(numberOfMonthsSinceStartDate / Math.floor(sip.frequency / 12))
+        quantity += numberOfPurchases * sip.quantity
+    }
+
     return quantity
-  }
+}
+
+export function calculatePortfolioCost(etfs: Record<Isin, ETF>, prices: Record<Isin, Record<IsoDate, number>>, date: IsoDate) {
+    const quantities = Object.values(etfs).reduce((result, etf) => {
+        const transactionCost = etf.transactions.reduce((cost, transaction) => cost + transaction.quantity * transaction.price, 0)
+
+        let sipCost = 0
+        if (etf.sip) {
+            const lastKnownPrice = etf.transactions.at(-1)?.price
+            let dateToProcess = etf.sip.startDate
+            while (dateToProcess <= date) {
+                // TODO: if we are using a fallback price we should communicate that to the user
+                const price = prices[etf.isin]?.[dateToProcess] ?? lastKnownPrice ?? 0
+                sipCost += etf.sip.quantity * price
+                dateToProcess = dayjs(dateToProcess).add(Math.floor(12 / etf.sip.frequency), 'month').format('YYYY-MM-DD')
+            }
+        }
+
+        result[etf.isin] = transactionCost + sipCost
+        return result
+    }, {} as Record<string, number>/*isin, cost*/)
+
+    const value = Object.values(quantities).reduce((result, cost) => result += cost, 0)
+
+    return value
+}
+
+export const pricesHistoryToMap = (history: { price: number, date: string }[]) => {
+    return history.reduce((result, price) => {
+        result[price.date] = price.price
+        return result
+    }, {} as Record<IsoDate, number>)
+}
+
+export const calculateCurrentPortfolioValue = (etfs: Record<Isin, ETF>, prices: CurrentPrices, today: IsoDate) => {
+    return calculateCurrentPortfolioValueForFilteredEtfs(etfs, prices, today, () => true)
+}
+
+
+export const calculateCurrentPortfolioValueForCountryAllocation = (etfs: Record<Isin, ETF>, prices: CurrentPrices, today: IsoDate) => {
+    return calculateCurrentPortfolioValueForFilteredEtfs(etfs, prices, today, (etf) => etf.assetClass.category === 'stocks')
+}
+
+const calculateCurrentPortfolioValueForFilteredEtfs = (etfs: Record<Isin, ETF>, prices: CurrentPrices, today: IsoDate, filterFn: (etf: ETF) => boolean) => {
+    const quantities = Object.values(etfs)
+        .filter(filterFn)
+        .reduce((result, etf) => {
+            result[etf.isin] = quantityAtDate(etf.transactions, today, etf.sip)
+            return result
+        }, {} as Record<Isin, number>/*isin, quantity*/)
+
+    const value = Object.entries(quantities).reduce((result, [isin, quantity]) => result += (prices[isin]?.price || 0) * quantity, 0)
+
+    return value
+}
+
+export const calculateCurrentEtfData = (etfs: Record<Isin, ETF>, prices: CurrentPrices, today: IsoDate) => {
+    return Object.values(etfs).map(etf => {
+        const quantity = quantityAtDate(etf.transactions, today, etf.sip)
+        return {
+            name: etf.name,
+            isin: etf.isin,
+            assetClass: etf.assetClass.category,
+            quantity,
+            paidValue: etf.transactions.reduce((sum, { quantity, price }) => sum += quantity * price, 0),
+            currentValue: quantity * (prices[etf.isin]?.price || 0)
+        }
+    })
+}
+
+export const calculateCurrentValuesByCountry = (etfs: Record<Isin, ETF>, prices: CurrentPrices, today: IsoDate) => {
+    const currentCountryValue = Object.values(etfs)
+        .filter(etf => etf.assetClass.category === 'stocks')
+        .reduce((result, etf) => {
+            const quantity = quantityAtDate(etf.transactions, today, etf.sip)
+            Object.entries(etf.countries).forEach(([country, percentage]) => {
+                result[country] = (result[country] || 0) + quantity * (prices[etf.isin]?.price * percentage / 100 || 0)
+            })
+            return result
+        }, {} as Record<Country, number>)
+
+    return currentCountryValue
+}
+
+export const calculateCurrentAssetClassAllocation = (etfs: Record<Isin, ETF>, prices: CurrentPrices, today: IsoDate, currentPortfolioValue: number) => {
+    const currentAssetClassValue = Object.values(etfs)
+        .reduce((result, etf) => {
+            const quantity = quantityAtDate(etf.transactions, today, etf.sip)
+            result[etf.assetClass.category] = (result[etf.assetClass.category] || 0) + quantity * (prices[etf.isin]?.price || 0)
+            return result
+        }, {} as Record<AssetClassCategory, number>)
+
+    const currentAllocationByAssetClass = Object.entries(currentAssetClassValue).reduce((result, [assetClass, value]) => {
+        result[assetClass] = value / currentPortfolioValue * 100
+        return result
+    }, {} as Record<AssetClassCategory, number>)
+
+    return currentAllocationByAssetClass
+}

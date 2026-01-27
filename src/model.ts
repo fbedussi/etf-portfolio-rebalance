@@ -4,7 +4,7 @@ export type AssetClassCategory = string
 
 export type Country = string
 
-export type IsoDate = string
+export type IsoDate = string // ISO 8601 format (YYYY-MM-DD)
 
 export type Portfolio = {
   _id: string
@@ -22,9 +22,10 @@ export type ETF = {
   assetClass: AssetClass
   countries: Record<Country, number> // country -> percentage
   transactions: Transaction[]
+  sip?: SIP
 }
 
-export type AssetClass = {
+export   type AssetClass = {
   name: string // e.g., "US Large Cap"
   category: AssetClassCategory
 }
@@ -136,4 +137,11 @@ export type PricesApiResponseJustEtf = {
       localized: string
     }
   }[],
+}
+
+export type SIP = {
+  quantity: number
+  dayOfMonth: number
+  frequency: number // in months: 12 = monthly, 6 = bi-monthly, 3 = quarterly, 1 = yearly
+  startDate: string // ISO date
 }
