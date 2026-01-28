@@ -2,13 +2,7 @@ import * as React from "react"
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts"
 
 import { useIsMobile } from "@/hooks/use-mobile"
-import {
-  Card,
-  CardAction,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
+import { Card, CardAction, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
   ChartContainer,
   ChartTooltip,
@@ -36,7 +30,7 @@ function isWorkingDay(date: string) {
   }
 
   // Christmas (Dec 24, 25, 26, 31)
-  if (month === 11 && [24,25,26,31].includes(dayOfMonth)) {
+  if (month === 11 && [24, 25, 26, 31].includes(dayOfMonth)) {
     return false
   }
 
@@ -68,147 +62,153 @@ export function ChartAreaInteractive() {
     }
   }, [isMobile])
 
-  const data = useMemo(() => Object.entries(prices).reduce((result, [isin, { history }]) => {
-    const transactions = portfolio?.etfs[isin].transactions || []
-    history.forEach(({ date, price }) => {
-      if (isWorkingDay(date)) {
-        result[date] = (result[date] || 0) + (price * quantityAtDate(transactions, date))
-      }
-    })
-    return result
-  }, {} as Record<string, number>), [portfolio, prices])
+  const data = useMemo(
+    () =>
+      Object.entries(prices).reduce(
+        (result, [isin, { history }]) => {
+          const transactions = portfolio?.etfs[isin].transactions || []
+          history.forEach(({ date, price }) => {
+            if (isWorkingDay(date)) {
+              result[date] = (result[date] || 0) + price * quantityAtDate(transactions, date)
+            }
+          })
+          return result
+        },
+        {} as Record<string, number>,
+      ),
+    [portfolio, prices],
+  )
 
-  const dataSorted = useMemo(() => Object.entries(data).map(([date, price]) => ({
-    date,
-    price,
-  })).toSorted((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()), [data])
+  const dataSorted = useMemo(
+    () =>
+      Object.entries(data)
+        .map(([date, price]) => ({
+          date,
+          price,
+        }))
+        .toSorted((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()),
+    [data],
+  )
 
-  const dataFiltered = useMemo(() => dataSorted.filter((item) => {
-    if (timeRange === "all") {
-      return item.price > 0
-    }
+  const dataFiltered = useMemo(
+    () =>
+      dataSorted.filter((item) => {
+        if (timeRange === "all") {
+          return item.price > 0
+        }
 
-    const date = new Date(item.date)
-    const referenceDate = new Date()
-    let daysToSubtract = 90
-    if (timeRange === "1m") {
-      daysToSubtract = 30
-    } else if (timeRange === "6m") {
-      daysToSubtract = 180
-    } else if (timeRange === "1y") {
-      daysToSubtract = 365
-    }
-    const startDate = new Date(referenceDate)
-    startDate.setDate(startDate.getDate() - daysToSubtract)
-    return date >= startDate
-  }), [dataSorted, timeRange])
+        const date = new Date(item.date)
+        const referenceDate = new Date()
+        let daysToSubtract = 90
+        if (timeRange === "1m") {
+          daysToSubtract = 30
+        } else if (timeRange === "6m") {
+          daysToSubtract = 180
+        } else if (timeRange === "1y") {
+          daysToSubtract = 365
+        }
+        const startDate = new Date(referenceDate)
+        startDate.setDate(startDate.getDate() - daysToSubtract)
+        return date >= startDate
+      }),
+    [dataSorted, timeRange],
+  )
 
   return (
-      <Card className="@container/card min-h-[400px]">
-        <CardHeader>
-          <CardTitle>Valore portafoglio</CardTitle>
-          <CardAction>
-            <div className="flex gap-4">
-              <div className="flex items-center gap-3">
-                <Checkbox id="terms" checked={isExpanded} onClick={() => setIsExpanded(!isExpanded)} />
-                <Label htmlFor="terms">Espandi</Label>
-              </div>
-              <ToggleGroup
-                type="single"
-                value={timeRange}
-                onValueChange={setTimeRange}
-                variant="outline"
-                className="hidden *:data-[slot=toggle-group-item]:!px-4 @[767px]/card:flex"
-              >
-                <ToggleGroupItem value="1m">Ultimo mese</ToggleGroupItem>
-                <ToggleGroupItem value="6m">Ultimi 6 mesi</ToggleGroupItem>
-                <ToggleGroupItem value="1y">Ultimo anno</ToggleGroupItem>
-                <ToggleGroupItem value="all">Tutto</ToggleGroupItem>
-              </ToggleGroup>
-              <Select value={timeRange} onValueChange={setTimeRange}>
-                <SelectTrigger
-                  className="flex w-40 **:data-[slot=select-value]:block **:data-[slot=select-value]:truncate @[767px]/card:hidden"
-                  size="sm"
-                  aria-label="Select a value"
-                >
-                  <SelectValue placeholder="Ultimo mese" />
-                </SelectTrigger>
-                <SelectContent className="rounded-xl">
-                  <SelectItem value="1m" className="rounded-lg">
-                    Ultimo mese
-                  </SelectItem>
-                  <SelectItem value="6m" className="rounded-lg">
-                    Ultimi 6 mesi
-                  </SelectItem>
-                  <SelectItem value="1y" className="rounded-lg">
-                    Ultimo anno
-                  </SelectItem>
-                  <SelectItem value="all" className="rounded-lg">
-                    Tutto
-                  </SelectItem>
-                </SelectContent>
-              </Select>
+    <Card className="@container/card min-h-[400px]">
+      <CardHeader>
+        <CardTitle>Valore portafoglio</CardTitle>
+        <CardAction>
+          <div className="flex gap-4">
+            <div className="flex items-center gap-3">
+              <Checkbox
+                id="terms"
+                checked={isExpanded}
+                onClick={() => setIsExpanded(!isExpanded)}
+              />
+              <Label htmlFor="terms">Espandi</Label>
             </div>
-          </CardAction>
-        </CardHeader>
-        <CardContent className="px-2 pt-4 sm:px-6 sm:pt-6 flex-1">
-          <ChartContainer
-            config={chartConfig}
-            className="aspect-auto h-[250px] w-full h-full"
-          >
-            <AreaChart data={dataFiltered}>
-              <defs>
-                <linearGradient id="fillValue" x1="0" y1="0" x2="0" y2="1">
-                  <stop
-                    offset="5%"
-                    stopColor="var(--color-primary)"
-                    stopOpacity={1.0}
-                  />
-                  <stop
-                    offset="95%"
-                    stopColor="var(--color-secondary)"
-                    stopOpacity={0.1}
-                  />
-                </linearGradient>
-              </defs>
-              <CartesianGrid vertical={false} />
-              <XAxis
-                dataKey="date"
-                tickLine={false}
-                axisLine={false}
-                tickMargin={8}
-                minTickGap={32}
-                tickFormatter={(value) => {
-                  const date = new Date(value)
-                  return date.toLocaleDateString("it-IT", {
-                    month: "short",
-                    day: "numeric",
-                  })
-                }}
-              />
-              <ChartTooltip
-                cursor={false}
-                content={
-                  <ChartTooltipContent
-                    labelFormatter={(value) => {
-                      return new Date(value).toLocaleDateString("it-IT", {
-                        month: "short",
-                        day: "numeric",
-                      })
-                    }}
-                    indicator="dot"
-                  />
-                }
-              />
-              <YAxis domain={isExpanded ? ["dataMin", "dataMax"] : undefined} hide />
-              <Area
-                dataKey="price"
-                fill="url(#fillValue)"
-                stroke="var(--color-primary)"
-              />
-            </AreaChart>
-          </ChartContainer>
-        </CardContent>
-      </Card>
-    )
+            <ToggleGroup
+              type="single"
+              value={timeRange}
+              onValueChange={setTimeRange}
+              variant="outline"
+              className="hidden *:data-[slot=toggle-group-item]:!px-4 @[767px]/card:flex"
+            >
+              <ToggleGroupItem value="1m">Ultimo mese</ToggleGroupItem>
+              <ToggleGroupItem value="6m">Ultimi 6 mesi</ToggleGroupItem>
+              <ToggleGroupItem value="1y">Ultimo anno</ToggleGroupItem>
+              <ToggleGroupItem value="all">Tutto</ToggleGroupItem>
+            </ToggleGroup>
+            <Select value={timeRange} onValueChange={setTimeRange}>
+              <SelectTrigger
+                className="flex w-40 **:data-[slot=select-value]:block **:data-[slot=select-value]:truncate @[767px]/card:hidden"
+                size="sm"
+                aria-label="Select a value"
+              >
+                <SelectValue placeholder="Ultimo mese" />
+              </SelectTrigger>
+              <SelectContent className="rounded-xl">
+                <SelectItem value="1m" className="rounded-lg">
+                  Ultimo mese
+                </SelectItem>
+                <SelectItem value="6m" className="rounded-lg">
+                  Ultimi 6 mesi
+                </SelectItem>
+                <SelectItem value="1y" className="rounded-lg">
+                  Ultimo anno
+                </SelectItem>
+                <SelectItem value="all" className="rounded-lg">
+                  Tutto
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </CardAction>
+      </CardHeader>
+      <CardContent className="px-2 pt-4 sm:px-6 sm:pt-6 flex-1">
+        <ChartContainer config={chartConfig} className="aspect-auto h-[250px] w-full h-full">
+          <AreaChart data={dataFiltered}>
+            <defs>
+              <linearGradient id="fillValue" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="var(--color-primary)" stopOpacity={1.0} />
+                <stop offset="95%" stopColor="var(--color-secondary)" stopOpacity={0.1} />
+              </linearGradient>
+            </defs>
+            <CartesianGrid vertical={false} />
+            <XAxis
+              dataKey="date"
+              tickLine={false}
+              axisLine={false}
+              tickMargin={8}
+              minTickGap={32}
+              tickFormatter={(value) => {
+                const date = new Date(value)
+                return date.toLocaleDateString("it-IT", {
+                  month: "short",
+                  day: "numeric",
+                })
+              }}
+            />
+            <ChartTooltip
+              cursor={false}
+              content={
+                <ChartTooltipContent
+                  labelFormatter={(value) => {
+                    return new Date(value).toLocaleDateString("it-IT", {
+                      month: "short",
+                      day: "numeric",
+                    })
+                  }}
+                  indicator="dot"
+                />
+              }
+            />
+            <YAxis domain={isExpanded ? ["dataMin", "dataMax"] : undefined} hide />
+            <Area dataKey="price" fill="url(#fillValue)" stroke="var(--color-primary)" />
+          </AreaChart>
+        </ChartContainer>
+      </CardContent>
+    </Card>
+  )
 }

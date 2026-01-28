@@ -1,9 +1,7 @@
 import { ChartAreaInteractive } from "@/components/chart-area-interactive"
 import { DataTable } from "@/components/data-table"
 import { SiteHeader } from "@/components/site-header"
-import {
-  SidebarProvider,
-} from "@/components/ui/sidebar"
+import { SidebarProvider } from "@/components/ui/sidebar"
 import { useLoadPortfolio, useLoadPrices } from "./dataLoader"
 import { DriftCardCountry } from "./components/drift-card-country"
 import { PieChartCountry } from "./components/pie-chart-country"

@@ -16,7 +16,7 @@ export type Portfolio = {
 }
 
 export type ETF = {
-  dataSource: 'borsaitaliana' | 'justetf'
+  dataSource: "borsaitaliana" | "justetf"
   isin: string
   name: string
   assetClass: AssetClass
@@ -25,7 +25,7 @@ export type ETF = {
   sip?: SIP
 }
 
-export   type AssetClass = {
+export type AssetClass = {
   name: string // e.g., "US Large Cap"
   category: AssetClassCategory
 }
@@ -41,7 +41,7 @@ export type CurrentPrices = Record<Isin, CurrentPrice>
 export type CurrentPrice = {
   price: number
   timestamp: IsoDate
-  history: { price: number, date: string }[]
+  history: { price: number; date: string }[]
 }
 
 export type ApiResponse<T> = { data: T } | { error: Error }
@@ -53,14 +53,14 @@ export type PricesApiResponse = {
     exchCode: string
   }
   history: History
-  status: number,
-  entityID: string,
-  view: string,
-  beginningDate: string,
-  endingDate: string,
-  period: string,
-  tickSizeRule: string,
-  adjustement: boolean,
+  status: number
+  entityID: string
+  view: string
+  beginningDate: string
+  endingDate: string
+  period: string
+  tickSizeRule: string
+  adjustement: boolean
   addDayLastPrice: boolean
 }
 
@@ -85,58 +85,58 @@ export type History = {
 }
 
 export type IntradayPoint = {
-  time: string, //"20251208-09:10:00"
-  nbTrade: number,
-  beginPx: number,
-  beginTime: string, //"09:10:43"
-  endPx: number,
-  endTime: string, //"09:10:43"
-  highPx: number,
-  lowPx: number,
-  beginAskPx: number,
-  endAskPx: number,
-  highAskPx: number,
-  lowAskPx: number,
-  beginBidPx: number,
-  endBidPx: number,
-  highBidPx: number,
-  lowBidPx: number,
-  vol: number,
-  amt: number,
-  previousClosingPx: number,
-  previousClosingDt: string, //"20251205"
-  previousSettlementPx: number,
-  previousSettlementDt: string, //"20251205
+  time: string //"20251208-09:10:00"
+  nbTrade: number
+  beginPx: number
+  beginTime: string //"09:10:43"
+  endPx: number
+  endTime: string //"09:10:43"
+  highPx: number
+  lowPx: number
+  beginAskPx: number
+  endAskPx: number
+  highAskPx: number
+  lowAskPx: number
+  beginBidPx: number
+  endBidPx: number
+  highBidPx: number
+  lowBidPx: number
+  vol: number
+  amt: number
+  previousClosingPx: number
+  previousClosingDt: string //"20251205"
+  previousSettlementPx: number
+  previousSettlementDt: string //"20251205
 }
 
 export type PricesApiResponseJustEtf = {
   latestQuote: {
-    raw: number,
+    raw: number
     localized: string
-  },
-  latestQuoteDate: string,
+  }
+  latestQuoteDate: string
   price: {
-    raw: number,
+    raw: number
     localized: string
-  },
+  }
   performance: {
-    raw: number,
+    raw: number
     localized: string
-  },
+  }
   prevDaySeries: {
-    date: string,
+    date: string
     value: {
-      raw: number,
+      raw: number
       localized: string
     }
-  }[],
+  }[]
   series: {
-    date: string,
+    date: string
     value: {
-      raw: number,
+      raw: number
       localized: string
     }
-  }[],
+  }[]
 }
 
 export type SIP = {

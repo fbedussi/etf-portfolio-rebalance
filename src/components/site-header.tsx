@@ -10,26 +10,27 @@ export function SiteHeader() {
   return (
     <header className="flex h-(--header-height) shrink-0 items-center gap-2 border-b transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-(--header-height)">
       <div className="flex w-full items-center gap-1 px-4 lg:gap-2 lg:px-6">
-        <div className="flex items-center gap-2" >
+        <div className="flex items-center gap-2">
           <CompassIcon className="size-5!" />
           <span className="text-base font-semibold">Portfolio Pilot</span>
         </div>
-        <Separator
-          orientation="vertical"
-          className="mx-2 data-[orientation=vertical]:h-4"
-        />
+        <Separator orientation="vertical" className="mx-2 data-[orientation=vertical]:h-4" />
         <h1 className="text-base font-medium">
-          <span className="hidden md:inline">Portafoglio corrente: </span>{portfolio?.name}
+          <span className="hidden md:inline">Portafoglio corrente: </span>
+          {portfolio?.name}
         </h1>
         <div className="ml-auto flex items-center gap-2">
-          <Button 
-          onClick={() => {
-            debugger
+          <Button
+            onClick={() => {
+              debugger
               if (!portfolio) return
               deletePortfolio(portfolio._id)
               // useLoadPortfolio()
             }}
-          variant="outline" size="icon" aria-label="Submit">
+            variant="outline"
+            size="icon"
+            aria-label="Submit"
+          >
             <FileUpIcon />
           </Button>
         </div>
