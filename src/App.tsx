@@ -1,7 +1,6 @@
 import { ChartAreaInteractive } from "@/components/chart-area-interactive"
 import { DataTable } from "@/components/data-table"
 import { SiteHeader } from "@/components/site-header"
-import { SidebarProvider } from "@/components/ui/sidebar"
 import { useLoadPortfolio, useLoadPrices } from "./dataLoader"
 import { DriftCardCountry } from "./components/drift-card-country"
 import { PieChartCountry } from "./components/pie-chart-country"
@@ -14,7 +13,7 @@ export default function App() {
   useLoadPrices()
 
   return (
-    <SidebarProvider
+    <div
       style={
         {
           "--sidebar-width": "calc(var(--spacing) * 72)",
@@ -44,6 +43,6 @@ export default function App() {
           </div>
         </div>
       </main>
-    </SidebarProvider>
+    </div>
   )
 }

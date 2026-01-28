@@ -30,7 +30,7 @@ function Row({
 
   const currentValueProfit = currentValue - paidValue
 
-  let color = colors[assetClass]
+  const color = colors[assetClass]
 
   const colorToClass: Record<string, string> = {
     "chart-1": "bg-chart-1",

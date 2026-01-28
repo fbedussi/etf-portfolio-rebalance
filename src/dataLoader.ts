@@ -164,7 +164,7 @@ export function useLoadPrices() {
         Store.setRefreshPrices(false)
       }
     })
-  }, [isins, refreshPrices])
+  }, [isins, refreshPrices, portfolio?.etfs])
 }
 
 function handleError(isin: string, cachedData: CurrentPrice | undefined, error: Error) {

@@ -598,7 +598,7 @@ describe("calculateCurrentPortfolioValueForCountryAllocation", () => {
     countries: {},
   }
 
-  const prices: any = {
+  const prices = {
     stock1: { price: 100, timestamp: "2020-01-01", history: [] },
     bond1: { price: 200, timestamp: "2020-01-01", history: [] },
   }
@@ -665,7 +665,7 @@ describe("calculateCurrentEtfData", () => {
     countries: {},
   }
 
-  const prices: any = {
+  const prices = {
     isin1: { price: 100, timestamp: "2020-01-01", history: [] },
   }
 
@@ -749,7 +749,7 @@ describe("calculateCurrentValuesByCountry", () => {
     },
   }
 
-  const prices: any = {
+  const prices = {
     isin1: { price: 100, timestamp: "2020-01-01", history: [] },
   }
 
@@ -784,7 +784,7 @@ describe("calculateCurrentValuesByCountry", () => {
         transactions: [{ quantity: 5, price: 50 } as Transaction],
       },
     }
-    const prices2: any = {
+    const prices2 = {
       ...prices,
       isin2: { price: 200, timestamp: "2020-01-01", history: [] },
     }
@@ -821,7 +821,7 @@ describe("calculateCurrentAssetClassAllocation", () => {
     countries: {},
   }
 
-  const prices: any = {
+  const prices = {
     isin1: { price: 100, timestamp: "2020-01-01", history: [] },
   }
 
@@ -855,7 +855,7 @@ describe("calculateCurrentAssetClassAllocation", () => {
         transactions: [{ quantity: 5, price: 50 } as Transaction],
       },
     }
-    const prices2: any = {
+    const prices2 = {
       ...prices,
       isin2: { price: 200, timestamp: "2020-01-01", history: [] },
     }
@@ -885,7 +885,7 @@ describe("calculateCurrentAssetClassAllocation", () => {
         transactions: [{ quantity: 5, price: 50 } as Transaction],
       },
     }
-    const prices2: any = {
+    const prices2 = {
       ...prices,
       isin2: { price: 200, timestamp: "2020-01-01", history: [] },
     }
