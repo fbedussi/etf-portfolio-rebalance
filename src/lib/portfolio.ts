@@ -79,14 +79,14 @@ export function getDriftDataByAssetClass(
   const newPorfolioValue_buyStrategy =
     isItPossibleToCompensateWithBuyStrategy && assetClassWithHighestDrift
       ? (assetClassWithHighestDrift.currentValue /
-          assetClassWithHighestDrift.targetAllocationPercentage) *
-        100
+        assetClassWithHighestDrift.targetAllocationPercentage) *
+      100
       : portfolioValue
 
   const newPorfolioValue_sellStrategy = assetClassWithLowestDrift
     ? (assetClassWithLowestDrift.currentValue /
-        assetClassWithLowestDrift.targetAllocationPercentage) *
-      100
+      assetClassWithLowestDrift.targetAllocationPercentage) *
+    100
     : portfolioValue
 
   return drifts.map(
@@ -96,19 +96,19 @@ export function getDriftDataByAssetClass(
       percentage,
       amountToBuyToCompensate: isItPossibleToCompensateWithBuyStrategy
         ? Number(
-            (
-              (newPorfolioValue_buyStrategy / 100) * targetAllocationPercentage -
-              currentValue
-            ).toFixed(2),
-          )
+          (
+            (newPorfolioValue_buyStrategy / 100) * targetAllocationPercentage -
+            currentValue
+          ).toFixed(2),
+        )
         : null,
       amountToSellToCompensate: isItPossibleToCompensateWithSellStrategy
         ? Number(
-            (
-              currentValue -
-              (newPorfolioValue_sellStrategy / 100) * targetAllocationPercentage
-            ).toFixed(2),
-          )
+          (
+            currentValue -
+            (newPorfolioValue_sellStrategy / 100) * targetAllocationPercentage
+          ).toFixed(2),
+        )
         : null,
     }),
   )
@@ -171,13 +171,23 @@ export function calculatePortfolioCost(
   return value
 }
 
-export const pricesHistoryToMap = (history: { price: number; date: string }[]) => {
+const pricesHistoryToMap = (history: { price: number; date: string }[]) => {
   return history.reduce(
     (result, price) => {
       result[price.date] = price.price
       return result
     },
     {} as Record<IsoDate, number>,
+  )
+}
+
+export const calculatePricesHistoryMap = (prices: CurrentPrices) => {
+  return Object.entries(prices).reduce(
+    (result, [isin, price]) => {
+      result[isin] = pricesHistoryToMap(price.history)
+      return result
+    },
+    {} as Record<Isin, Record<IsoDate, number>>,
   )
 }
 
@@ -294,4 +304,147 @@ export const calculateCurrentAssetClassAllocation = (
   )
 
   return currentAllocationByAssetClass
+}
+
+
+export const calculateCurrentValuesByAssetClass = (currentEtfData: {
+  name: string;
+  isin: string;
+  assetClass: string;
+  quantity: number;
+  paidValue: number;
+  currentValue: number;
+}[]) => {
+  return currentEtfData.reduce(
+    (result, { assetClass, currentValue }) => {
+      result[assetClass] = (result[assetClass] || 0) + currentValue
+      return result
+    },
+    {} as Record<AssetClassCategory, number>,
+  )
+}
+
+export const calculateCurrentCountryAllocation = (currentPortfolioValue: number, currentCountryValue: Record<string, number>) => {
+  const currentAllocationByCountry = Object.entries(currentCountryValue).reduce(
+    (result, [country, value]) => {
+      result[country] = (value / currentPortfolioValue) * 100
+      return result
+    },
+    {} as Record<Country, number>,
+  )
+
+  return currentAllocationByCountry
+}
+
+export const calculateCountryDriftData = (
+  currentPortfolioValue: number,
+  targetCountryAllocation: Record<string, number>,
+  currentValueByCountry: Record<string, number>,
+  currentPercentageByCountry: Record<string, number>,
+) => {
+  const drifts = Object.entries(targetCountryAllocation).map(([country, targetPercentage]) => {
+    const percentageDelta = currentPercentageByCountry[country] - targetCountryAllocation[country]
+
+    const driftPercentage = targetCountryAllocation[country]
+      ? (percentageDelta / targetCountryAllocation[country]) * 100
+      : 100
+
+    return {
+      country,
+      currentValue: currentValueByCountry[country],
+      targetAllocationPercentage: targetPercentage,
+      driftAmount:
+        currentValueByCountry[country] - (targetPercentage / 100) * currentPortfolioValue,
+      percentage: Number(driftPercentage.toFixed(2)),
+    }
+  })
+
+  const countriesInPortfolio = Object.keys(currentValueByCountry)
+
+  const countiresInTarget = Object.keys(targetCountryAllocation)
+
+  // if country is not in the target it is impossible to compensate the drift without selling it or changing the target
+  const isItPossibleToCompensateWithBuyStrategy = countriesInPortfolio.every((key) =>
+    countiresInTarget.includes(key),
+  )
+
+  // if country is not in the portfolio it is impossible to compensate the drift without buying it or changing the target
+  const isItPossibleToCompensateWithSellStrategy = countiresInTarget.every((key) =>
+    countriesInPortfolio.includes(key),
+  )
+
+  const sortedDrifts = drifts.toSorted((a, b) => a.driftAmount - b.driftAmount)
+  const countryWithLowestDrift = sortedDrifts.at(0)
+  const countryWithHighestDrift = sortedDrifts.at(-1)
+  const newPorfolioValue_buyStrategy =
+    isItPossibleToCompensateWithBuyStrategy && countryWithHighestDrift
+      ? (countryWithHighestDrift.currentValue /
+        countryWithHighestDrift.targetAllocationPercentage) *
+      100
+      : currentPortfolioValue
+
+  const newPorfolioValue_sellStrategy = countryWithLowestDrift
+    ? (countryWithLowestDrift.currentValue / countryWithLowestDrift.targetAllocationPercentage) *
+    100
+    : currentPortfolioValue
+
+  return drifts.map(
+    ({ country, currentValue, driftAmount, targetAllocationPercentage, percentage }) => ({
+      country,
+      driftAmount,
+      percentage,
+      amountToBuyToCompensate: isItPossibleToCompensateWithBuyStrategy
+        ? Number(
+          (
+            (newPorfolioValue_buyStrategy / 100) * targetAllocationPercentage -
+            currentValue
+          ).toFixed(2),
+        )
+        : null,
+      amountToSellToCompensate: isItPossibleToCompensateWithSellStrategy
+        ? Number(
+          (
+            currentValue -
+            (newPorfolioValue_sellStrategy / 100) * targetAllocationPercentage
+          ).toFixed(2),
+        )
+        : null,
+    }),
+  )
+}
+
+export const calculateAssetClassColors = (targetAssetClasses: string[], etfs: Record<Isin, ETF>) => {
+  const currentAssetClasses = Object.values(etfs).map(
+    (etf) => etf.assetClass.category,
+  )
+
+  const assetClasses = [...new Set(targetAssetClasses.concat(currentAssetClasses))]
+
+  const colors = assetClasses.reduce(
+    (result, assetClass, index) => {
+      result[assetClass] = `chart-${index + 1}`
+      return result
+    },
+    {} as Record<AssetClassCategory, string>,
+  )
+
+  return colors
+}
+
+export const calculateCountryColors = (targetCountries: string[], etfs: Record<Isin, ETF>) => {
+  const currentCountries = Object.values(etfs).flatMap((etf) =>
+    Object.keys(etf.countries),
+  )
+
+  const countries = [...new Set(targetCountries.concat(currentCountries))]
+
+  const colors = countries.reduce(
+    (result, country, index) => {
+      result[country] = `chart-${index + 1}`
+      return result
+    },
+    {} as Record<AssetClassCategory, string>,
+  )
+
+  return colors
 }

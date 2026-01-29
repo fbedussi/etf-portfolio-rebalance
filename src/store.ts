@@ -1,17 +1,22 @@
 import { create } from "zustand"
-import type { AssetClassCategory, Country, CurrentPrices, Isin, IsoDate, Portfolio } from "./model"
+import type { CurrentPrices, Portfolio } from "./model"
 import { devtools } from "zustand/middleware"
 import { useShallow } from "zustand/shallow"
 import { createSelector } from "reselect"
 import {
+  calculateAssetClassColors,
+  calculateCountryColors,
+  calculateCountryDriftData,
   calculateCurrentAssetClassAllocation,
+  calculateCurrentCountryAllocation,
   calculateCurrentEtfData,
   calculateCurrentPortfolioValue,
   calculateCurrentPortfolioValueForCountryAllocation,
+  calculateCurrentValuesByAssetClass,
   calculateCurrentValuesByCountry,
   calculatePortfolioCost,
+  calculatePricesHistoryMap,
   getDriftDataByAssetClass,
-  pricesHistoryToMap,
 } from "./lib/portfolio"
 import dayjs from "dayjs"
 
@@ -84,15 +89,7 @@ export const usePortfolioName = () => useStore((state: State) => state.portfolio
 
 const selectEtfs = createSelector(selectPortfolio, (portfolio) => portfolio?.etfs || {})
 
-const selectPricesHistoryMap = createSelector(selectPrices, (prices) => {
-  return Object.entries(prices).reduce(
-    (result, [isin, price]) => {
-      result[isin] = pricesHistoryToMap(price.history)
-      return result
-    },
-    {} as Record<Isin, Record<IsoDate, number>>,
-  )
-})
+const selectPricesHistoryMap = createSelector(selectPrices, calculatePricesHistoryMap)
 
 const selectToday = () => dayjs().format("YYYY-MM-DD")
 
@@ -148,15 +145,7 @@ const selectCurretEtfData = createSelector(
 
 export const useCurrentEtfData = () => useStore(selectCurretEtfData)
 
-const selectCurrentValuesByAssetClass = createSelector(selectCurretEtfData, (currentEtfData) => {
-  return currentEtfData.reduce(
-    (result, { assetClass, currentValue }) => {
-      result[assetClass] = (result[assetClass] || 0) + currentValue
-      return result
-    },
-    {} as Record<AssetClassCategory, number>,
-  )
-})
+const selectCurrentValuesByAssetClass = createSelector(selectCurretEtfData, calculateCurrentValuesByAssetClass)
 
 const selectDriftData = createSelector(
   selectTargetAssetClassAllocation,
@@ -194,17 +183,7 @@ const selectCurrentAssetClassAllocation = createSelector(
 const selectCurrentCountryAllocation = createSelector(
   selectCurrentPortfolioValueForCountryAllocation,
   selectCurrentValuesByCountry,
-  (currentPortfolioValue, currentCountryValue) => {
-    const currentAllocationByCountry = Object.entries(currentCountryValue).reduce(
-      (result, [country, value]) => {
-        result[country] = (value / currentPortfolioValue) * 100
-        return result
-      },
-      {} as Record<Country, number>,
-    )
-
-    return currentAllocationByCountry
-  },
+  calculateCurrentCountryAllocation,
 )
 
 export const useCurrentAssetClassAllocation = () =>
@@ -218,128 +197,21 @@ const selectCountryDriftData = createSelector(
   selectTargetCountryAllocation,
   selectCurrentValuesByCountry,
   selectCurrentCountryAllocation,
-  (
-    currentPortfolioValue,
-    targetCountryAllocation,
-    currentValueByCountry,
-    currentPercentageByCountry,
-  ) => {
-    const drifts = Object.entries(targetCountryAllocation).map(([country, targetPercentage]) => {
-      const percentageDelta = currentPercentageByCountry[country] - targetCountryAllocation[country]
-
-      const driftPercentage = targetCountryAllocation[country]
-        ? (percentageDelta / targetCountryAllocation[country]) * 100
-        : 100
-
-      return {
-        country,
-        currentValue: currentValueByCountry[country],
-        targetAllocationPercentage: targetPercentage,
-        driftAmount:
-          currentValueByCountry[country] - (targetPercentage / 100) * currentPortfolioValue,
-        percentage: Number(driftPercentage.toFixed(2)),
-      }
-    })
-
-    const countriesInPortfolio = Object.keys(currentValueByCountry)
-
-    const countiresInTarget = Object.keys(targetCountryAllocation)
-
-    // if country is not in the target it is impossible to compensate the drift without selling it or changing the target
-    const isItPossibleToCompensateWithBuyStrategy = countriesInPortfolio.every((key) =>
-      countiresInTarget.includes(key),
-    )
-
-    // if country is not in the portfolio it is impossible to compensate the drift without buying it or changing the target
-    const isItPossibleToCompensateWithSellStrategy = countiresInTarget.every((key) =>
-      countriesInPortfolio.includes(key),
-    )
-
-    const sortedDrifts = drifts.toSorted((a, b) => a.driftAmount - b.driftAmount)
-    const countryWithLowestDrift = sortedDrifts.at(0)
-    const countryWithHighestDrift = sortedDrifts.at(-1)
-    const newPorfolioValue_buyStrategy =
-      isItPossibleToCompensateWithBuyStrategy && countryWithHighestDrift
-        ? (countryWithHighestDrift.currentValue /
-            countryWithHighestDrift.targetAllocationPercentage) *
-          100
-        : currentPortfolioValue
-
-    const newPorfolioValue_sellStrategy = countryWithLowestDrift
-      ? (countryWithLowestDrift.currentValue / countryWithLowestDrift.targetAllocationPercentage) *
-        100
-      : currentPortfolioValue
-
-    return drifts.map(
-      ({ country, currentValue, driftAmount, targetAllocationPercentage, percentage }) => ({
-        country,
-        driftAmount,
-        percentage,
-        amountToBuyToCompensate: isItPossibleToCompensateWithBuyStrategy
-          ? Number(
-              (
-                (newPorfolioValue_buyStrategy / 100) * targetAllocationPercentage -
-                currentValue
-              ).toFixed(2),
-            )
-          : null,
-        amountToSellToCompensate: isItPossibleToCompensateWithSellStrategy
-          ? Number(
-              (
-                currentValue -
-                (newPorfolioValue_sellStrategy / 100) * targetAllocationPercentage
-              ).toFixed(2),
-            )
-          : null,
-      }),
-    )
-  },
+  calculateCountryDriftData,
 )
 
 export const useCountryDriftData = () => useStore(selectCountryDriftData)
 
-export const useAssetClassColors = () =>
-  useStore(
-    useShallow((state: State) => {
-      const targetAssetClasses = Object.keys(state.portfolio?.targetAssetClassAllocation || {})
-      const currentAssetClasses = Object.values(state.portfolio?.etfs || {}).map(
-        (etf) => etf.assetClass.category,
-      )
+export const useAssetClassColors = () => useStore(createSelector(
+  (model) => Object.keys(model.portfolio?.targetAssetClassAllocation || {}), 
+  selectEtfs, 
+  calculateAssetClassColors
+))
 
-      const assetClasses = [...new Set(targetAssetClasses.concat(currentAssetClasses))]
-
-      const colors = assetClasses.reduce(
-        (result, assetClass, index) => {
-          result[assetClass] = `chart-${index + 1}`
-          return result
-        },
-        {} as Record<AssetClassCategory, string>,
-      )
-
-      return colors
-    }),
-  )
-
-export const useCountryColors = () =>
-  useStore(
-    useShallow((state: State) => {
-      const targetCountries = Object.keys(state.portfolio?.targetCountryAllocation || {})
-      const currentCountries = Object.values(state.portfolio?.etfs || {}).flatMap((etf) =>
-        Object.keys(etf.countries),
-      )
-
-      const countries = [...new Set(targetCountries.concat(currentCountries))]
-
-      const colors = countries.reduce(
-        (result, country, index) => {
-          result[country] = `chart-${index + 1}`
-          return result
-        },
-        {} as Record<AssetClassCategory, string>,
-      )
-
-      return colors
-    }),
-  )
+export const useCountryColors = () => useStore(createSelector(
+    (state: State) => Object.keys(state.portfolio?.targetCountryAllocation || {}),
+    selectEtfs,
+    calculateCountryColors,
+))
 
 export const useRefreshPrices = () => useStore((state: State) => state.refreshPrices)

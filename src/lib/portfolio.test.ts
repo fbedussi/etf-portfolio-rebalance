@@ -9,8 +9,13 @@ import {
   calculateCurrentValuesByCountry,
   calculatePortfolioCost,
   getDriftDataByAssetClass,
-  pricesHistoryToMap,
+  calculatePricesHistoryMap,
   quantityAtDate,
+  calculateCurrentValuesByAssetClass,
+  calculateCurrentCountryAllocation,
+  calculateCountryDriftData,
+  calculateAssetClassColors,
+  calculateCountryColors,
 } from "./portfolio.ts"
 import type { ETF, Transaction } from "@/model.ts"
 
@@ -175,6 +180,17 @@ describe("quantityAtDate with SIP", () => {
         startDate: "2020-01-01",
       }),
       1,
+    )
+  })
+  test("the same day of the start date, but the day of execution is in the future", () => {
+    assert.strictEqual(
+      quantityAtDate([], "2020-01-01", {
+        quantity: 1,
+        dayOfMonth: 2,
+        frequency: 12,
+        startDate: "2020-01-01",
+      }),
+      0,
     )
   })
   test("the same day of the start date with more than one quantity", () => {
@@ -456,15 +472,24 @@ describe("calculatePortfolioCost", () => {
   })
 })
 
-describe("pricesHistoryToMap", () => {
+describe("calculatePricesHistoryMap", () => {
   test("converts prices to map", () => {
     const history = [
       { date: "2020-01-01", price: 100 },
       { date: "2020-01-02", price: 200 },
     ]
-    assert.deepStrictEqual(pricesHistoryToMap(history), {
-      "2020-01-01": 100,
-      "2020-01-02": 200,
+    const prices = {
+      isin1: {
+        price: 200,
+        timestamp: "2020-01-02",
+        history,
+      },
+    }
+    assert.deepStrictEqual(calculatePricesHistoryMap(prices), {
+      isin1: {
+        "2020-01-01": 100,
+        "2020-01-02": 200,
+      },
     })
   })
 })
@@ -914,3 +939,376 @@ describe("calculateCurrentAssetClassAllocation", () => {
     })
   })
 })
+
+describe("calculateCurrentValuesByAssetClass", () => {
+  test("returns empty object if no data", () => {
+    assert.deepStrictEqual(calculateCurrentValuesByAssetClass([]), {})
+  })
+
+  test("aggregates values by asset class", () => {
+    const currentEtfData = [
+      {
+        name: "ETF1",
+        isin: "isin1",
+        assetClass: "stocks",
+        quantity: 10,
+        paidValue: 500,
+        currentValue: 1000,
+      },
+      {
+        name: "ETF2",
+        isin: "isin2",
+        assetClass: "bonds",
+        quantity: 5,
+        paidValue: 250,
+        currentValue: 500,
+      },
+      {
+        name: "ETF3",
+        isin: "isin3",
+        assetClass: "stocks",
+        quantity: 5,
+        paidValue: 250,
+        currentValue: 500,
+      },
+    ]
+
+    assert.deepStrictEqual(calculateCurrentValuesByAssetClass(currentEtfData), {
+      stocks: 1500,
+      bonds: 500,
+    })
+  })
+})
+
+describe("calculateCurrentCountryAllocation", () => {
+  test("returns empty object if no data", () => {
+    assert.deepStrictEqual(calculateCurrentCountryAllocation(1000, {}), {})
+  })
+
+  test("calculates country allocation percentages", () => {
+    const currentCountryValue = {
+      US: 600,
+      EU: 400,
+    }
+    const currentPortfolioValue = 1000
+
+    assert.deepStrictEqual(
+      calculateCurrentCountryAllocation(currentPortfolioValue, currentCountryValue),
+      {
+        US: 60,
+        EU: 40,
+      },
+    )
+  })
+
+  test("calculates country allocation percentages with zero portfolio value", () => {
+    const currentCountryValue = {
+      US: 0,
+      EU: 0,
+    }
+    const currentPortfolioValue = 0
+
+    assert.deepStrictEqual(
+      calculateCurrentCountryAllocation(currentPortfolioValue, currentCountryValue),
+      {
+        US: NaN,
+        EU: NaN
+      }
+    )
+  })
+})
+
+describe("calculateCountryDriftData", () => {
+  const targetCountryAllocation = {
+    US: 60,
+    EU: 40,
+  }
+
+  test("Returns 0 if no drift", () => {
+    const currentPortfolioValue = 1000
+    const currentValueByCountry = {
+      US: 600,
+      EU: 400,
+    }
+    const currentPercentageByCountry = {
+      US: 60,
+      EU: 40,
+    }
+
+    assert.deepStrictEqual(
+      calculateCountryDriftData(
+        currentPortfolioValue,
+        targetCountryAllocation,
+        currentValueByCountry,
+        currentPercentageByCountry,
+      ),
+      [
+        {
+          country: "US",
+          driftAmount: 0,
+          percentage: 0,
+          amountToBuyToCompensate: 0,
+          amountToSellToCompensate: 0,
+        },
+        {
+          country: "EU",
+          driftAmount: 0,
+          percentage: 0,
+          amountToBuyToCompensate: 0,
+          amountToSellToCompensate: 0,
+        },
+      ],
+    )
+  })
+
+  test("drift where US is overweight and EU is underweight", () => {
+    // Portfolio Value: 1000
+    // Target: US 600, EU 400
+    // Actual: US 700, EU 300
+    // Drift: US +100, EU -100
+
+    const currentPortfolioValue = 1000
+    const currentValueByCountry = {
+      US: 700, // 70%
+      EU: 300, // 30%
+    }
+    const currentPercentageByCountry = {
+      US: 70,
+      EU: 30,
+    }
+
+    const result = calculateCountryDriftData(
+      currentPortfolioValue,
+      targetCountryAllocation,
+      currentValueByCountry,
+      currentPercentageByCountry,
+    )
+
+    assert.deepStrictEqual(result, [
+      {
+        country: "US",
+        driftAmount: 100,
+        percentage: 16.67,
+        amountToBuyToCompensate: -0,
+        amountToSellToCompensate: 250,
+      },
+      {
+        country: "EU",
+        driftAmount: -100,
+        percentage: -25,
+        amountToBuyToCompensate: 166.67,
+        amountToSellToCompensate: 0,
+      }
+    ])
+  })
+
+  test("drift where US is underweight and EU is overweight", () => {
+    // Portfolio Value: 1000
+    // Target: US 600, EU 400
+    // Actual: US 500, EU 500
+    // Drift: US -100, EU +100
+
+    const currentPortfolioValue = 1000
+    const currentValueByCountry = {
+      US: 500, // 50%
+      EU: 500, // 50%
+    }
+    const currentPercentageByCountry = {
+      US: 50,
+      EU: 50,
+    }
+
+    const result = calculateCountryDriftData(
+      currentPortfolioValue,
+      targetCountryAllocation,
+      currentValueByCountry,
+      currentPercentageByCountry,
+    )
+
+    assert.deepStrictEqual(result, [
+      {
+        country: "US",
+        driftAmount: -100,
+        percentage: -16.67,
+        amountToBuyToCompensate: 250,
+        amountToSellToCompensate: -0,
+      },
+      {
+        country: "EU",
+        driftAmount: 100,
+        percentage: 25,
+        amountToBuyToCompensate: 0,
+        amountToSellToCompensate: 166.67,
+      }
+    ])
+  })
+})
+
+describe("calculateAssetClassColors", () => {
+  const etf1: ETF = {
+    isin: "isin1",
+    transactions: [],
+    dataSource: "borsaitaliana",
+    assetClass: { name: "stocks", category: "stocks" },
+    name: "ETF1",
+    countries: {},
+  }
+
+  test("returns empty object when no target and no ETFs", () => {
+    assert.deepStrictEqual(calculateAssetClassColors([], {}), {})
+  })
+
+  test("returns colors for target asset classes only", () => {
+    const targetAssetClasses = ["stocks", "bonds", "gold"]
+    assert.deepStrictEqual(calculateAssetClassColors(targetAssetClasses, {}), {
+      stocks: "chart-1",
+      bonds: "chart-2",
+      gold: "chart-3",
+    })
+  })
+
+  test("returns colors for current asset classes from ETFs only", () => {
+    const etfs = {
+      isin1: { ...etf1, assetClass: { name: "stocks", category: "stocks" } },
+      isin2: { ...etf1, isin: "isin2", assetClass: { name: "bonds", category: "bonds" } },
+    }
+    assert.deepStrictEqual(calculateAssetClassColors([], etfs), {
+      stocks: "chart-1",
+      bonds: "chart-2",
+    })
+  })
+
+  test("combines and deduplicates target and current asset classes", () => {
+    const targetAssetClasses = ["stocks", "bonds", "gold"]
+    const etfs = {
+      isin1: { ...etf1, assetClass: { name: "stocks", category: "stocks" } },
+      isin2: { ...etf1, isin: "isin2", assetClass: { name: "bonds", category: "bonds" } },
+      isin3: { ...etf1, isin: "isin3", assetClass: { name: "realestate", category: "realestate" } },
+    }
+    // Should have: stocks, bonds, gold (from target), realestate (from ETFs)
+    assert.deepStrictEqual(calculateAssetClassColors(targetAssetClasses, etfs), {
+      stocks: "chart-1",
+      bonds: "chart-2",
+      gold: "chart-3",
+      realestate: "chart-4",
+    })
+  })
+
+  test("handles duplicate asset classes between target and ETFs", () => {
+    const targetAssetClasses = ["stocks", "bonds"]
+    const etfs = {
+      isin1: { ...etf1, assetClass: { name: "stocks", category: "stocks" } },
+      isin2: { ...etf1, isin: "isin2", assetClass: { name: "stocks", category: "stocks" } },
+    }
+    // Should deduplicate stocks
+    assert.deepStrictEqual(calculateAssetClassColors(targetAssetClasses, etfs), {
+      stocks: "chart-1",
+      bonds: "chart-2",
+    })
+  })
+
+  test("assigns sequential chart colors", () => {
+    const targetAssetClasses = ["a", "b", "c", "d", "e"]
+    assert.deepStrictEqual(calculateAssetClassColors(targetAssetClasses, {}), {
+      a: "chart-1",
+      b: "chart-2",
+      c: "chart-3",
+      d: "chart-4",
+      e: "chart-5",
+    })
+  })
+})
+
+describe("calculateCountryColors", () => {
+  const etf1: ETF = {
+    isin: "isin1",
+    transactions: [],
+    dataSource: "borsaitaliana",
+    assetClass: { name: "stocks", category: "stocks" },
+    name: "ETF1",
+    countries: {},
+  }
+
+  test("returns empty object when no target and no ETFs", () => {
+    assert.deepStrictEqual(calculateCountryColors([], {}), {})
+  })
+
+  test("returns colors for target countries only", () => {
+    const targetCountries = ["US", "EU", "JP"]
+    assert.deepStrictEqual(calculateCountryColors(targetCountries, {}), {
+      US: "chart-1",
+      EU: "chart-2",
+      JP: "chart-3",
+    })
+  })
+
+  test("returns colors for current countries from ETFs only", () => {
+    const etfs = {
+      isin1: { ...etf1, countries: { US: 60, EU: 40 } },
+      isin2: { ...etf1, isin: "isin2", countries: { JP: 100 } },
+    }
+    assert.deepStrictEqual(calculateCountryColors([], etfs), {
+      US: "chart-1",
+      EU: "chart-2",
+      JP: "chart-3",
+    })
+  })
+
+  test("combines and deduplicates target and current countries", () => {
+    const targetCountries = ["US", "EU", "JP"]
+    const etfs = {
+      isin1: { ...etf1, countries: { US: 50, EU: 30, CN: 20 } },
+      isin2: { ...etf1, isin: "isin2", countries: { JP: 80, IN: 20 } },
+    }
+    // Should have: US, EU, JP (from target), CN, IN (from ETFs)
+    assert.deepStrictEqual(calculateCountryColors(targetCountries, etfs), {
+      US: "chart-1",
+      EU: "chart-2",
+      JP: "chart-3",
+      CN: "chart-4",
+      IN: "chart-5",
+    })
+  })
+
+  test("handles duplicate countries between target and ETFs", () => {
+    const targetCountries = ["US", "EU"]
+    const etfs = {
+      isin1: { ...etf1, countries: { US: 60, EU: 40 } },
+      isin2: { ...etf1, isin: "isin2", countries: { US: 100 } },
+    }
+    // Should deduplicate US and EU
+    assert.deepStrictEqual(calculateCountryColors(targetCountries, etfs), {
+      US: "chart-1",
+      EU: "chart-2",
+    })
+  })
+
+  test("flattens countries from multiple ETFs", () => {
+    const etfs = {
+      isin1: { ...etf1, countries: { US: 30, EU: 30, JP: 40 } },
+      isin2: { ...etf1, isin: "isin2", countries: { US: 50, CN: 50 } },
+      isin3: { ...etf1, isin: "isin3", countries: { IN: 60, BR: 40 } },
+    }
+    // Should collect all unique countries: US, EU, JP, CN, IN, BR
+    assert.deepStrictEqual(calculateCountryColors([], etfs), {
+      US: "chart-1",
+      EU: "chart-2",
+      JP: "chart-3",
+      CN: "chart-4",
+      IN: "chart-5",
+      BR: "chart-6",
+    })
+  })
+
+  test("assigns sequential chart colors", () => {
+    const targetCountries = ["A", "B", "C", "D", "E"]
+    assert.deepStrictEqual(calculateCountryColors(targetCountries, {}), {
+      A: "chart-1",
+      B: "chart-2",
+      C: "chart-3",
+      D: "chart-4",
+      E: "chart-5",
+    })
+  })
+})
+
