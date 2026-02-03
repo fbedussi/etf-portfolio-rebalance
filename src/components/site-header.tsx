@@ -1,11 +1,25 @@
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
-import { deletePortfolio } from "@/services/cacheService"
-import { usePortfolio } from "@/store"
+import { parseFile } from "@/lib/file"
+import { setPortfolio, usePortfolio } from "@/store"
 import { CompassIcon, FileUpIcon } from "lucide-react"
+import { useRef } from "react"
 
 export function SiteHeader() {
   const portfolio = usePortfolio()
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (file) {
+      parseFile(file)
+        .then(setPortfolio)
+        .catch(error => {
+          // TODO: show an error message
+          console.error(error)
+        })
+    }
+  }
 
   return (
     <header className="flex h-(--header-height) shrink-0 items-center gap-2 border-b transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-(--header-height)">
@@ -17,18 +31,25 @@ export function SiteHeader() {
         <Separator orientation="vertical" className="mx-2 data-[orientation=vertical]:h-4" />
         <h1 className="text-base font-medium">
           <span className="hidden md:inline">Portafoglio corrente: </span>
-          {portfolio?.name}
+          <span data-test-id="portfolio-name">{portfolio?.name}</span>
         </h1>
         <div className="ml-auto flex items-center gap-2">
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".yaml,.yml"
+            onChange={handleFileChange}
+            className="hidden"
+            aria-hidden="true"
+          />
           <Button
             onClick={() => {
-              if (!portfolio) return
-              deletePortfolio(portfolio._id)
-              // useLoadPortfolio()
+              fileInputRef.current?.click()
             }}
             variant="outline"
+            data-test-id="open-file-btn"
             size="icon"
-            aria-label="Submit"
+            aria-label="Apri file"
           >
             <FileUpIcon />
           </Button>

@@ -7,7 +7,7 @@ export type Country = string
 export type IsoDate = string // ISO 8601 format (YYYY-MM-DD)
 
 export type Portfolio = {
-  _id: string
+  _id?: string
   name: string
   targetAssetClassAllocation: Record<AssetClassCategory, number> // category -> percentage
   targetCountryAllocation: Record<Country, number> // country -> percentage
