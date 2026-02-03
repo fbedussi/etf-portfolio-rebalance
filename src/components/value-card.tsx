@@ -31,7 +31,7 @@ export function ValueCard() {
     <Card className="@container/card">
       <CardHeader>
         <CardDescription>Valore totale</CardDescription>
-        <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
+        <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl" data-test-id="portfolio-current-total">
           {formatMoney(value)}
         </CardTitle>
         <CardAction>
@@ -48,6 +48,9 @@ export function ValueCard() {
       <CardContent>
         <div className="line-clamp-1 flex gap-2 font-medium text-muted-foreground">
           Costo: <span className="text-primary">{formatMoney(cost)}</span>
+        </div>
+        <div className="line-clamp-1 flex gap-2 font-medium text-muted-foreground">
+          P/L: <span className="text-primary">{formatMoney(value - cost)}</span>
         </div>
       </CardContent>
       <CardFooter className="items-start gap-1.5 text-sm flex-1 items-end">

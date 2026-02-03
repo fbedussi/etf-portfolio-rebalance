@@ -175,29 +175,16 @@ describe("quantityAtDate with SIP", () => {
     assert.strictEqual(
       quantityAtDate([], "2020-01-01", {
         quantity: 1,
-        dayOfMonth: 1,
         frequency: 12,
         startDate: "2020-01-01",
       }),
       1,
     )
   })
-  test("the same day of the start date, but the day of execution is in the future", () => {
-    assert.strictEqual(
-      quantityAtDate([], "2020-01-01", {
-        quantity: 1,
-        dayOfMonth: 2,
-        frequency: 12,
-        startDate: "2020-01-01",
-      }),
-      0,
-    )
-  })
   test("the same day of the start date with more than one quantity", () => {
     assert.strictEqual(
       quantityAtDate([], "2020-01-01", {
         quantity: 2,
-        dayOfMonth: 1,
         frequency: 12,
         startDate: "2020-01-01",
       }),
@@ -208,7 +195,6 @@ describe("quantityAtDate with SIP", () => {
     assert.strictEqual(
       quantityAtDate([], "2020-01-02", {
         quantity: 1,
-        dayOfMonth: 1,
         frequency: 12,
         startDate: "2020-01-01",
       }),
@@ -219,7 +205,6 @@ describe("quantityAtDate with SIP", () => {
     assert.strictEqual(
       quantityAtDate([], "2020-01-02", {
         quantity: 2,
-        dayOfMonth: 1,
         frequency: 12,
         startDate: "2020-01-01",
       }),
@@ -230,7 +215,6 @@ describe("quantityAtDate with SIP", () => {
     assert.strictEqual(
       quantityAtDate([], "2020-02-01", {
         quantity: 1,
-        dayOfMonth: 1,
         frequency: 12,
         startDate: "2020-01-01",
       }),
@@ -241,7 +225,6 @@ describe("quantityAtDate with SIP", () => {
     assert.strictEqual(
       quantityAtDate([], "2020-02-01", {
         quantity: 2,
-        dayOfMonth: 1,
         frequency: 12,
         startDate: "2020-01-01",
       }),
@@ -253,7 +236,6 @@ describe("quantityAtDate with SIP", () => {
     assert.strictEqual(
       quantityAtDate([], "2020-01-01", {
         quantity: 1,
-        dayOfMonth: 1,
         frequency: 12,
         startDate: "2019-01-01",
       }),
@@ -264,7 +246,6 @@ describe("quantityAtDate with SIP", () => {
     assert.strictEqual(
       quantityAtDate([], "2020-01-01", {
         quantity: 2,
-        dayOfMonth: 1,
         frequency: 12,
         startDate: "2019-01-01",
       }),
@@ -275,7 +256,6 @@ describe("quantityAtDate with SIP", () => {
     assert.strictEqual(
       quantityAtDate([], "2020-01-02", {
         quantity: 1,
-        dayOfMonth: 1,
         frequency: 12,
         startDate: "2019-01-01",
       }),
@@ -286,7 +266,6 @@ describe("quantityAtDate with SIP", () => {
     assert.strictEqual(
       quantityAtDate([], "2020-01-02", {
         quantity: 2,
-        dayOfMonth: 1,
         frequency: 12,
         startDate: "2019-01-01",
       }),
@@ -297,7 +276,6 @@ describe("quantityAtDate with SIP", () => {
     assert.strictEqual(
       quantityAtDate([], "2020-02-01", {
         quantity: 1,
-        dayOfMonth: 1,
         frequency: 12,
         startDate: "2019-01-01",
       }),
@@ -308,7 +286,6 @@ describe("quantityAtDate with SIP", () => {
     assert.strictEqual(
       quantityAtDate([], "2020-02-01", {
         quantity: 2,
-        dayOfMonth: 1,
         frequency: 12,
         startDate: "2019-01-01",
       }),
@@ -393,7 +370,6 @@ describe("calculatePortfolioCost", () => {
             transactions: [],
             sip: {
               quantity: 10,
-              dayOfMonth: 1,
               frequency: 12,
               startDate: "2020-01-01",
             },
@@ -418,7 +394,6 @@ describe("calculatePortfolioCost", () => {
             ...etf1,
             sip: {
               quantity: 10,
-              dayOfMonth: 1,
               frequency: 12,
               startDate: "2019-01-01",
             },
@@ -456,7 +431,6 @@ describe("calculatePortfolioCost", () => {
             transactions: [{ quantity: 10, price: 101 } as Transaction],
             sip: {
               quantity: 10,
-              dayOfMonth: 1,
               frequency: 12,
               startDate: "2020-01-01",
             },
@@ -572,7 +546,6 @@ describe("calculateCurrentPortfolioValue", () => {
             transactions: [{ quantity: 5, price: 50 } as Transaction],
             sip: {
               quantity: 10,
-              dayOfMonth: 1,
               frequency: 12,
               startDate: "2020-01-01",
             },

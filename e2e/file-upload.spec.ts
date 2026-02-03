@@ -46,11 +46,10 @@ test('should only accept YAML files in the file dialog', async ({ page }) => {
     expect(acceptAttribute).toBe('.yaml,.yml');
 });
 
-test('should update portfolio name after uploading a file', async ({ page }) => {
+test('should show the portfolio data after uploading a file', async ({ page }) => {
     // Navigate to the app
     await page.goto('http://localhost:5173');
 
-    // Wait for the button to be visible
     const openFileBtn = page.locator('[data-test-id="open-file-btn"]');
 
     // Start waiting for file chooser before clicking
@@ -63,6 +62,41 @@ test('should update portfolio name after uploading a file', async ({ page }) => 
 
     // Verify the portfolio name matches the one in the yaml file
     const portfolioName = page.locator('[data-test-id="portfolio-name"]');
-    await portfolioName.waitFor({ state: 'attached' });
+    await expect(portfolioName).toHaveText('My Simple Portfolio');
+});
+
+test('after a portfolio is uploaded the prices are fetched', async ({ page }) => {
+    // Arrange
+    await page.goto('http://localhost:5173');
+    const openFileBtn = page.locator('[data-test-id="open-file-btn"]');
+    // Start waiting for file chooser before clicking
+    const fileChooserPromise = page.waitForEvent('filechooser');
+    
+    // Act
+    await openFileBtn.click();
+    const fileChooser = await fileChooserPromise;
+    await fileChooser.setFiles('portfolio-simple.yaml');
+
+    // Assert
+    const portfolioCurrentTotalName = page.locator('[data-test-id="portfolio-current-total"]');
+    await expect(portfolioCurrentTotalName).toHaveText('5500,00 €');
+});
+
+test('the uploaded portfolio persists across page reloads', async ({ page }) => {
+    // Arrange
+    await page.goto('http://localhost:5173');
+    const openFileBtn = page.locator('[data-test-id="open-file-btn"]');
+    const fileChooserPromise = page.waitForEvent('filechooser');
+    await openFileBtn.click();
+    const fileChooser = await fileChooserPromise;
+    await fileChooser.setFiles('portfolio-simple.yaml');
+    const portfolioName = page.locator('[data-test-id="portfolio-name"]');
+    await expect(portfolioName).toHaveText('My Simple Portfolio');
+
+    // Act
+    await page.reload()
+
+
+    // Assert
     await expect(portfolioName).toHaveText('My Simple Portfolio');
 });

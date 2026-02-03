@@ -15,7 +15,6 @@ const TransactionSchema = z.object({
 
 const SIPSchema = z.object({
   quantity: z.number(),
-  dayOfMonth: z.number(),
   frequency: z.number(), // in months: 12 = monthly, 6 = bi-monthly, 3 = quarterly, 1 = yearly
   startDate: z.string() // ISO date
 })

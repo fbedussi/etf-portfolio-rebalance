@@ -141,7 +141,6 @@ export type PricesApiResponseJustEtf = {
 
 export type SIP = {
   quantity: number
-  dayOfMonth: number
   frequency: number // in months: 12 = monthly, 6 = bi-monthly, 3 = quarterly, 1 = yearly
   startDate: string // ISO date
 }

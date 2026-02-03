@@ -4,6 +4,7 @@ import { parseFile } from "@/lib/file"
 import { setPortfolio, usePortfolio } from "@/store"
 import { CompassIcon, FileUpIcon } from "lucide-react"
 import { useRef } from "react"
+import * as Cache from "@/services/cacheService"
 
 export function SiteHeader() {
   const portfolio = usePortfolio()
@@ -13,7 +14,10 @@ export function SiteHeader() {
     const file = event.target.files?.[0]
     if (file) {
       parseFile(file)
-        .then(setPortfolio)
+        .then(portfolio => {
+          setPortfolio(portfolio)
+          Cache.savePortfolio(portfolio)
+        })
         .catch(error => {
           // TODO: show an error message
           console.error(error)

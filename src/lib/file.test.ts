@@ -36,7 +36,6 @@ etfs:
         price: 235.20
     sip:
       quantity: 1
-      dayOfMonth: 12
       frequency: 12
       startDate: "2026-01-16"
 
@@ -94,7 +93,6 @@ etfs:
                     ],
                     "sip": {
                         "quantity": 1,
-                        "dayOfMonth": 12,
                         "frequency": 12,
                         "startDate": "2026-01-16"
                     }
