@@ -70,6 +70,28 @@ The built files will be in the `dist` directory.
 npm run preview
 ```
 
+## Deployment
+
+### GitHub Pages
+
+This project includes a GitHub Actions workflow that automatically builds and deploys to GitHub Pages.
+
+**Setup Instructions:**
+
+1. Go to your repository settings on GitHub
+2. Navigate to **Settings** → **Pages**
+3. Under **Build and deployment**, set:
+   - **Source**: GitHub Actions
+4. Push to the `main` branch (or trigger the workflow manually from the Actions tab)
+5. Your site will be available at: `https://<username>.github.io/etf-portfolio-rebalance/`
+
+**Automatic Deployment:**
+- The workflow runs automatically on every push to the `main` branch
+- It includes type checking, linting, and testing before deployment
+- You can also trigger deployment manually from the Actions tab
+
+**Note:** The first deployment may take a few minutes. Subsequent deployments are typically faster.
+
 ## Usage
 
 ### Creating a Portfolio

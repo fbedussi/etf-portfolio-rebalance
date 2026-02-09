@@ -5,6 +5,7 @@ import react from "@vitejs/plugin-react"
 
 // https://vite.dev/config/
 export default defineConfig({
+  base: process.env.GITHUB_PAGES ? "/etf-portfolio-rebalance/" : "/",
   plugins: [react(), tailwindcss()],
   resolve: {
     alias: {
