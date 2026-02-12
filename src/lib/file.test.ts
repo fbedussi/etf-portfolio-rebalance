@@ -122,7 +122,79 @@ etfs:
             }
         }
 
-        const actualResult = await parseFile(testFile) 
+        const actualResult = await parseFile(testFile)
+
+        assert.equal(typeof actualResult._id, 'string')
+        delete actualResult._id
+        assert.deepStrictEqual(actualResult, expectedResult)
+    })
+
+    test("allows no transaction", async () => {
+        const testFile = new File([`
+name: "My Simple Portfolio"
+
+targetAssetClassAllocation:
+  Stocks: 70
+  Bonds: 30
+
+targetCountryAllocation:
+  US: 50
+  others: 50
+
+maxDrift: 10
+
+etfs:
+  IE00B4L5Y983:
+    name: "iShares Core MSCI World UCITS"
+    assetClass:
+        name: "US Total Market"
+        category: "Stocks"
+    countries:
+        US: 68.96
+        others: 31.04
+    sip:
+      quantity: 1
+      frequency: 12
+      startDate: "2026-01-16"
+            `], "input.yml", {
+            type: "text/plain",
+        });
+
+        const expectedResult = {
+            "name": "My Simple Portfolio",
+            "targetAssetClassAllocation": {
+                "Stocks": 70,
+                "Bonds": 30
+            },
+            "targetCountryAllocation": {
+                "US": 50,
+                "others": 50
+            },
+            "maxDrift": 10,
+            "etfs": {
+                "IE00B4L5Y983": {
+                    "dataSource": "borsaitaliana",
+                    "isin": "IE00B4L5Y983",
+                    "name": "iShares Core MSCI World UCITS",
+                    "assetClass": {
+                        "name": "US Total Market",
+                        "category": "Stocks",
+                    },
+                    "countries": {
+                        "US": 68.96,
+                        "others": 31.04
+                    },
+                    "transactions": [],
+                    "sip": {
+                        "quantity": 1,
+                        "frequency": 12,
+                        "startDate": "2026-01-16"
+                    }
+                }
+            }
+        }
+
+        const actualResult = await parseFile(testFile)
 
         assert.equal(typeof actualResult._id, 'string')
         delete actualResult._id
