@@ -668,7 +668,7 @@ describe("calculateCurrentEtfData", () => {
   }
 
   test("returns empty array if no etfs", () => {
-    assert.deepStrictEqual(calculateCurrentEtfData({}, prices, "2020-01-01"), [])
+    assert.deepStrictEqual(calculateCurrentEtfData({}, prices, {}, "2020-01-01"), [])
   })
 
   test("returns data for single ETF with transactions", () => {
@@ -678,7 +678,7 @@ describe("calculateCurrentEtfData", () => {
         transactions: [{ quantity: 10, price: 50 } as Transaction],
       },
     }
-    assert.deepStrictEqual(calculateCurrentEtfData(etfs, prices, "2020-01-01"), [
+    assert.deepStrictEqual(calculateCurrentEtfData(etfs, prices, {}, "2020-01-01"), [
       {
         name: "ETF1",
         isin: "isin1",
@@ -702,7 +702,7 @@ describe("calculateCurrentEtfData", () => {
         },
       },
     }
-    assert.deepStrictEqual(calculateCurrentEtfData(etfs, prices, "2020-01-01"), [
+    assert.deepStrictEqual(calculateCurrentEtfData(etfs, prices, { isin1: {} }, "2020-01-01"), [
       {
         name: "ETF1",
         isin: "isin1",
@@ -721,7 +721,7 @@ describe("calculateCurrentEtfData", () => {
         transactions: [{ quantity: 10, price: 50 } as Transaction],
       },
     }
-    assert.deepStrictEqual(calculateCurrentEtfData(etfs, {}, "2020-01-01"), [
+    assert.deepStrictEqual(calculateCurrentEtfData(etfs, {}, {}, "2020-01-01"), [
       {
         name: "ETF1",
         isin: "isin1",

@@ -136,31 +136,12 @@ export const quantityAtDate = (transactions: Transaction[], date: string, sip?: 
 
 export function calculatePortfolioCost(
   etfs: Record<Isin, ETF>,
-  prices: Record<Isin, Record<IsoDate, number>>,
+  pricesHistoryMap: Record<Isin, Record<IsoDate, number>>,
   date: IsoDate,
 ) {
   const quantities = Object.values(etfs).reduce(
     (result, etf) => {
-      const transactionCost = etf.transactions.reduce(
-        (cost, transaction) => cost + transaction.quantity * transaction.price,
-        0,
-      )
-
-      let sipCost = 0
-      if (etf.sip) {
-        const lastKnownPrice = etf.transactions.at(-1)?.price
-        let dateToProcess = etf.sip.startDate
-        while (dateToProcess <= date) {
-          // TODO: if we are using a fallback price we should communicate that to the user
-          const price = prices[etf.isin]?.[dateToProcess] ?? lastKnownPrice ?? 0
-          sipCost += etf.sip.quantity * price
-          dateToProcess = dayjs(dateToProcess)
-            .add(Math.floor(12 / etf.sip.frequency), "month")
-            .format("YYYY-MM-DD")
-        }
-      }
-
-      result[etf.isin] = transactionCost + sipCost
+      result[etf.isin] = calculateEtfCost(etf, pricesHistoryMap[etf.isin], date)
       return result
     },
     {} as Record<string, number> /*isin, cost*/,
@@ -169,6 +150,29 @@ export function calculatePortfolioCost(
   const value = Object.values(quantities).reduce((result, cost) => (result += cost), 0)
 
   return value
+}
+
+function calculateEtfCost(etf: ETF, pricesHistoryMap: Record<IsoDate, number> | undefined, date: IsoDate) {
+  const transactionCost = etf.transactions.reduce(
+    (cost, transaction) => cost + transaction.quantity * transaction.price,
+    0,
+  )
+
+  let sipCost = 0
+  if (etf.sip) {
+    const lastKnownPrice = etf.transactions.at(-1)?.price
+    let dateToProcess = etf.sip.startDate
+    while (dateToProcess <= date) {
+      // TODO: if we are using a fallback price we should communicate that to the user
+      const price = pricesHistoryMap?.[dateToProcess] ?? lastKnownPrice ?? 0
+      sipCost += etf.sip.quantity * price
+      dateToProcess = dayjs(dateToProcess)
+        .add(Math.floor(12 / etf.sip.frequency), "month")
+        .format("YYYY-MM-DD")
+    }
+  }
+
+  return transactionCost + sipCost
 }
 
 const pricesHistoryToMap = (history: { price: number; date: string }[]) => {
@@ -239,6 +243,7 @@ const calculateCurrentPortfolioValueForFilteredEtfs = (
 export const calculateCurrentEtfData = (
   etfs: Record<Isin, ETF>,
   prices: CurrentPrices,
+  pricesHistoryMap: Record<Isin, Record<IsoDate, number>>,
   today: IsoDate,
 ) => {
   return Object.values(etfs).map((etf) => {
@@ -248,10 +253,7 @@ export const calculateCurrentEtfData = (
       isin: etf.isin,
       assetClass: etf.assetClass.category,
       quantity,
-      paidValue: etf.transactions.reduce(
-        (sum, { quantity, price }) => (sum += quantity * price),
-        0,
-      ),
+      paidValue: calculateEtfCost(etf, pricesHistoryMap[etf.isin], today),
       currentValue: quantity * (prices[etf.isin]?.price || 0),
     }
   })
