@@ -152,6 +152,30 @@ export function calculatePortfolioCost(
   return value
 }
 
+function getPriceAtDate(pricesHistoryMap: Record<IsoDate, number> | undefined, dateToProcess: IsoDate, isin: string) {
+  // TODO: if we are using a fallback price we should communicate that to the user
+  let priceAtDate = pricesHistoryMap?.[dateToProcess]
+  if (priceAtDate) {
+    return priceAtDate
+  }
+
+  let deltaDays = 1
+  let nextDay
+  while (!priceAtDate && (!nextDay || pricesHistoryMap?.[nextDay])) {
+    nextDay = dayjs(dateToProcess).add(deltaDays, 'day').format("YYYY-MM-DD")
+    priceAtDate = pricesHistoryMap?.[nextDay]
+
+    if (priceAtDate) {
+      console.log('no price at date ', dateToProcess, ' for', isin, ' applying fallback', priceAtDate)
+      return priceAtDate
+    }
+
+    deltaDays++
+  }
+
+  return priceAtDate
+}
+
 function calculateEtfCost(etf: ETF, pricesHistoryMap: Record<IsoDate, number> | undefined, date: IsoDate) {
   const transactionCost = etf.transactions.reduce(
     (cost, transaction) => cost + transaction.quantity * transaction.price,
@@ -161,10 +185,15 @@ function calculateEtfCost(etf: ETF, pricesHistoryMap: Record<IsoDate, number> | 
   let sipCost = 0
   if (etf.sip) {
     const lastKnownPrice = etf.transactions.at(-1)?.price
+    if (!lastKnownPrice) {
+      console.log('no last known price for', etf.isin)
+    }
+
     let dateToProcess = etf.sip.startDate
     while (dateToProcess <= date) {
-      // TODO: if we are using a fallback price we should communicate that to the user
-      const price = pricesHistoryMap?.[dateToProcess] ?? lastKnownPrice ?? 0
+
+      const price = getPriceAtDate(pricesHistoryMap, dateToProcess, etf.isin) ?? lastKnownPrice ?? 0
+
       sipCost += etf.sip.quantity * price
       dateToProcess = dayjs(dateToProcess)
         .add(Math.floor(12 / etf.sip.frequency), "month")
