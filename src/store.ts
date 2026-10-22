@@ -51,7 +51,7 @@ export const setEftQuantity = (isin: string, quantity: number) =>
                     {
                       quantity,
                       price: state.prices[isin]?.price || 0,
-                      date: new Date().toISOString(),
+                      date: dayjs().format("YYYY-MM-DD"),
                     },
                   ]) || [],
               },
