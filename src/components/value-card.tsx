@@ -31,7 +31,10 @@ export function ValueCard() {
     <Card className="@container/card">
       <CardHeader>
         <CardDescription>Valore totale</CardDescription>
-        <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl" data-test-id="portfolio-current-total">
+        <CardTitle
+          className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl"
+          data-test-id="portfolio-current-total"
+        >
           {formatMoney(value)}
         </CardTitle>
         <CardAction>

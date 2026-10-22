@@ -40,24 +40,24 @@ export const setEftQuantity = (isin: string, quantity: number) =>
     return !state.portfolio?.etfs[isin]
       ? state
       : {
-        portfolio: {
-          ...state.portfolio,
-          etfs: {
-            ...state.portfolio?.etfs,
-            [isin]: {
-              ...state.portfolio?.etfs[isin],
-              transactions:
-                state.portfolio?.etfs[isin].transactions.concat([
-                  {
-                    quantity,
-                    price: state.prices[isin]?.price || 0,
-                    date: new Date().toISOString(),
-                  },
-                ]) || [],
+          portfolio: {
+            ...state.portfolio,
+            etfs: {
+              ...state.portfolio?.etfs,
+              [isin]: {
+                ...state.portfolio?.etfs[isin],
+                transactions:
+                  state.portfolio?.etfs[isin].transactions.concat([
+                    {
+                      quantity,
+                      price: state.prices[isin]?.price || 0,
+                      date: new Date().toISOString(),
+                    },
+                  ]) || [],
+              },
             },
           },
-        },
-      }
+        }
   })
 
 const selectPortfolio = (state: State) => state.portfolio
@@ -146,7 +146,10 @@ const selectCurretEtfData = createSelector(
 
 export const useCurrentEtfData = () => useStore(selectCurretEtfData)
 
-const selectCurrentValuesByAssetClass = createSelector(selectCurretEtfData, calculateCurrentValuesByAssetClass)
+const selectCurrentValuesByAssetClass = createSelector(
+  selectCurretEtfData,
+  calculateCurrentValuesByAssetClass,
+)
 
 const selectDriftData = createSelector(
   selectTargetAssetClassAllocation,
@@ -203,16 +206,22 @@ const selectCountryDriftData = createSelector(
 
 export const useCountryDriftData = () => useStore(selectCountryDriftData)
 
-export const useAssetClassColors = () => useStore(createSelector(
-  (model) => Object.keys(model.portfolio?.targetAssetClassAllocation || {}),
-  selectEtfs,
-  calculateAssetClassColors
-))
+export const useAssetClassColors = () =>
+  useStore(
+    createSelector(
+      (model) => Object.keys(model.portfolio?.targetAssetClassAllocation || {}),
+      selectEtfs,
+      calculateAssetClassColors,
+    ),
+  )
 
-export const useCountryColors = () => useStore(createSelector(
-  (state: State) => Object.keys(state.portfolio?.targetCountryAllocation || {}),
-  selectEtfs,
-  calculateCountryColors,
-))
+export const useCountryColors = () =>
+  useStore(
+    createSelector(
+      (state: State) => Object.keys(state.portfolio?.targetCountryAllocation || {}),
+      selectEtfs,
+      calculateCountryColors,
+    ),
+  )
 
 export const useRefreshPrices = () => useStore((state: State) => state.refreshPrices)

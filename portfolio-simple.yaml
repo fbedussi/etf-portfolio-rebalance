@@ -14,8 +14,8 @@ etfs:
   IE00B4L5Y983:
     name: "iShares Core MSCI World UCITS"
     assetClass:
-        name: "US Total Market"
-        category: "Stocks"
+      name: "US Total Market"
+      category: "Stocks"
     transactions:
       - date: "2024-01-15"
         quantity: 10
@@ -24,8 +24,8 @@ etfs:
   LU0478205379:
     name: "Xtrackers II EUR Corporate Bond UCITS ETF 1C"
     assetClass:
-        name: "US Aggregate Bonds"
-        category: "Bonds"
+      name: "US Aggregate Bonds"
+      category: "Bonds"
     transactions:
       - date: "2024-01-15"
         quantity: 20

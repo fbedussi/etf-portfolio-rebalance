@@ -79,14 +79,14 @@ export function getDriftDataByAssetClass(
   const newPorfolioValue_buyStrategy =
     isItPossibleToCompensateWithBuyStrategy && assetClassWithHighestDrift
       ? (assetClassWithHighestDrift.currentValue /
-        assetClassWithHighestDrift.targetAllocationPercentage) *
-      100
+          assetClassWithHighestDrift.targetAllocationPercentage) *
+        100
       : portfolioValue
 
   const newPorfolioValue_sellStrategy = assetClassWithLowestDrift
     ? (assetClassWithLowestDrift.currentValue /
-      assetClassWithLowestDrift.targetAllocationPercentage) *
-    100
+        assetClassWithLowestDrift.targetAllocationPercentage) *
+      100
     : portfolioValue
 
   return drifts.map(
@@ -96,19 +96,19 @@ export function getDriftDataByAssetClass(
       percentage,
       amountToBuyToCompensate: isItPossibleToCompensateWithBuyStrategy
         ? Number(
-          (
-            (newPorfolioValue_buyStrategy / 100) * targetAllocationPercentage -
-            currentValue
-          ).toFixed(2),
-        )
+            (
+              (newPorfolioValue_buyStrategy / 100) * targetAllocationPercentage -
+              currentValue
+            ).toFixed(2),
+          )
         : null,
       amountToSellToCompensate: isItPossibleToCompensateWithSellStrategy
         ? Number(
-          (
-            currentValue -
-            (newPorfolioValue_sellStrategy / 100) * targetAllocationPercentage
-          ).toFixed(2),
-        )
+            (
+              currentValue -
+              (newPorfolioValue_sellStrategy / 100) * targetAllocationPercentage
+            ).toFixed(2),
+          )
         : null,
     }),
   )
@@ -152,7 +152,11 @@ export function calculatePortfolioCost(
   return value
 }
 
-function getPriceAtDate(pricesHistoryMap: Record<IsoDate, number> | undefined, dateToProcess: IsoDate, isin: string) {
+function getPriceAtDate(
+  pricesHistoryMap: Record<IsoDate, number> | undefined,
+  dateToProcess: IsoDate,
+  isin: string,
+) {
   // TODO: if we are using a fallback price we should communicate that to the user
   let priceAtDate = pricesHistoryMap?.[dateToProcess]
   if (priceAtDate) {
@@ -162,11 +166,18 @@ function getPriceAtDate(pricesHistoryMap: Record<IsoDate, number> | undefined, d
   let deltaDays = 1
   let nextDay
   while (!priceAtDate && (!nextDay || pricesHistoryMap?.[nextDay])) {
-    nextDay = dayjs(dateToProcess).add(deltaDays, 'day').format("YYYY-MM-DD")
+    nextDay = dayjs(dateToProcess).add(deltaDays, "day").format("YYYY-MM-DD")
     priceAtDate = pricesHistoryMap?.[nextDay]
 
     if (priceAtDate) {
-      console.log('no price at date ', dateToProcess, ' for', isin, ' applying fallback', priceAtDate)
+      console.log(
+        "no price at date ",
+        dateToProcess,
+        " for",
+        isin,
+        " applying fallback",
+        priceAtDate,
+      )
       return priceAtDate
     }
 
@@ -176,7 +187,11 @@ function getPriceAtDate(pricesHistoryMap: Record<IsoDate, number> | undefined, d
   return priceAtDate
 }
 
-function calculateEtfCost(etf: ETF, pricesHistoryMap: Record<IsoDate, number> | undefined, date: IsoDate) {
+function calculateEtfCost(
+  etf: ETF,
+  pricesHistoryMap: Record<IsoDate, number> | undefined,
+  date: IsoDate,
+) {
   const transactionCost = etf.transactions.reduce(
     (cost, transaction) => cost + transaction.quantity * transaction.price,
     0,
@@ -186,12 +201,11 @@ function calculateEtfCost(etf: ETF, pricesHistoryMap: Record<IsoDate, number> | 
   if (etf.sip) {
     const lastKnownPrice = etf.transactions.at(-1)?.price
     if (!lastKnownPrice) {
-      console.log('no last known price for', etf.isin)
+      console.log("no last known price for", etf.isin)
     }
 
     let dateToProcess = etf.sip.startDate
     while (dateToProcess <= date) {
-
       const price = getPriceAtDate(pricesHistoryMap, dateToProcess, etf.isin) ?? lastKnownPrice ?? 0
 
       sipCost += etf.sip.quantity * price
@@ -337,15 +351,16 @@ export const calculateCurrentAssetClassAllocation = (
   return currentAllocationByAssetClass
 }
 
-
-export const calculateCurrentValuesByAssetClass = (currentEtfData: {
-  name: string;
-  isin: string;
-  assetClass: string;
-  quantity: number;
-  paidValue: number;
-  currentValue: number;
-}[]) => {
+export const calculateCurrentValuesByAssetClass = (
+  currentEtfData: {
+    name: string
+    isin: string
+    assetClass: string
+    quantity: number
+    paidValue: number
+    currentValue: number
+  }[],
+) => {
   return currentEtfData.reduce(
     (result, { assetClass, currentValue }) => {
       result[assetClass] = (result[assetClass] || 0) + currentValue
@@ -355,7 +370,10 @@ export const calculateCurrentValuesByAssetClass = (currentEtfData: {
   )
 }
 
-export const calculateCurrentCountryAllocation = (currentPortfolioValue: number, currentCountryValue: Record<string, number>) => {
+export const calculateCurrentCountryAllocation = (
+  currentPortfolioValue: number,
+  currentCountryValue: Record<string, number>,
+) => {
   const currentAllocationByCountry = Object.entries(currentCountryValue).reduce(
     (result, [country, value]) => {
       result[country] = (value / currentPortfolioValue) * 100
@@ -410,13 +428,13 @@ export const calculateCountryDriftData = (
   const newPorfolioValue_buyStrategy =
     isItPossibleToCompensateWithBuyStrategy && countryWithHighestDrift
       ? (countryWithHighestDrift.currentValue /
-        countryWithHighestDrift.targetAllocationPercentage) *
-      100
+          countryWithHighestDrift.targetAllocationPercentage) *
+        100
       : currentPortfolioValue
 
   const newPorfolioValue_sellStrategy = countryWithLowestDrift
     ? (countryWithLowestDrift.currentValue / countryWithLowestDrift.targetAllocationPercentage) *
-    100
+      100
     : currentPortfolioValue
 
   return drifts.map(
@@ -426,28 +444,29 @@ export const calculateCountryDriftData = (
       percentage,
       amountToBuyToCompensate: isItPossibleToCompensateWithBuyStrategy
         ? Number(
-          (
-            (newPorfolioValue_buyStrategy / 100) * targetAllocationPercentage -
-            currentValue
-          ).toFixed(2),
-        )
+            (
+              (newPorfolioValue_buyStrategy / 100) * targetAllocationPercentage -
+              currentValue
+            ).toFixed(2),
+          )
         : null,
       amountToSellToCompensate: isItPossibleToCompensateWithSellStrategy
         ? Number(
-          (
-            currentValue -
-            (newPorfolioValue_sellStrategy / 100) * targetAllocationPercentage
-          ).toFixed(2),
-        )
+            (
+              currentValue -
+              (newPorfolioValue_sellStrategy / 100) * targetAllocationPercentage
+            ).toFixed(2),
+          )
         : null,
     }),
   )
 }
 
-export const calculateAssetClassColors = (targetAssetClasses: string[], etfs: Record<Isin, ETF>) => {
-  const currentAssetClasses = Object.values(etfs).map(
-    (etf) => etf.assetClass.category,
-  )
+export const calculateAssetClassColors = (
+  targetAssetClasses: string[],
+  etfs: Record<Isin, ETF>,
+) => {
+  const currentAssetClasses = Object.values(etfs).map((etf) => etf.assetClass.category)
 
   const assetClasses = [...new Set(targetAssetClasses.concat(currentAssetClasses))]
 
@@ -463,9 +482,7 @@ export const calculateAssetClassColors = (targetAssetClasses: string[], etfs: Re
 }
 
 export const calculateCountryColors = (targetCountries: string[], etfs: Record<Isin, ETF>) => {
-  const currentCountries = Object.values(etfs).flatMap((etf) =>
-    Object.keys(etf.countries),
-  )
+  const currentCountries = Object.values(etfs).flatMap((etf) => Object.keys(etf.countries))
 
   const countries = [...new Set(targetCountries.concat(currentCountries))]
 

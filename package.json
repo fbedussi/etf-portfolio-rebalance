@@ -9,7 +9,10 @@
     "typecheck": "tsc -b --noEmit",
     "check": "npm run typecheck && npm run lint",
     "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
+    "quality": "npm lint && npm format",
+    "quality:fix": "npm run lint:fix && npm run format",
     "preview": "vite preview",
     "test": "node --test",
     "e2e": " npx playwright test"

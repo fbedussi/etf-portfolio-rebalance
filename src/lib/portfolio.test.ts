@@ -985,8 +985,8 @@ describe("calculateCurrentCountryAllocation", () => {
       calculateCurrentCountryAllocation(currentPortfolioValue, currentCountryValue),
       {
         US: NaN,
-        EU: NaN
-      }
+        EU: NaN,
+      },
     )
   })
 })
@@ -1071,7 +1071,7 @@ describe("calculateCountryDriftData", () => {
         percentage: -25,
         amountToBuyToCompensate: 166.67,
         amountToSellToCompensate: 0,
-      }
+      },
     ])
   })
 
@@ -1112,7 +1112,7 @@ describe("calculateCountryDriftData", () => {
         percentage: 25,
         amountToBuyToCompensate: 0,
         amountToSellToCompensate: 166.67,
-      }
+      },
     ])
   })
 })
@@ -1284,4 +1284,3 @@ describe("calculateCountryColors", () => {
     })
   })
 })
-

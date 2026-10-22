@@ -7,7 +7,7 @@ A modern web application for managing and rebalancing your ETF portfolio. Track 
 - **Portfolio Management**: Define your target asset class and country allocations
 - **Real-time Price Updates**: Automatic price fetching from Borsa Italiana and JustETF APIs
 - **Drift Analysis**: Visual indicators showing how your current allocation differs from targets
-- **Interactive Charts**: 
+- **Interactive Charts**:
   - Portfolio value over time
   - Asset class distribution (pie charts)
   - Country allocation breakdown
@@ -35,12 +35,14 @@ A modern web application for managing and rebalancing your ETF portfolio. Track 
 ### Installation
 
 1. Clone the repository:
+
 ```bash
 git clone <repository-url>
 cd etf-portfolio-rebalance
 ```
 
 2. Install dependencies:
+
 ```bash
 npm install
 ```
@@ -50,6 +52,7 @@ npm install
 ### Development
 
 Start the development server:
+
 ```bash
 npm run dev
 ```
@@ -86,6 +89,7 @@ This project includes a GitHub Actions workflow that automatically builds and de
 5. Your site will be available at: `https://<username>.github.io/etf-portfolio-rebalance/`
 
 **Automatic Deployment:**
+
 - The workflow runs automatically on every push to the `main` branch
 - It includes type checking, linting, and testing before deployment
 - You can also trigger deployment manually from the Actions tab
@@ -115,8 +119,8 @@ etfs:
   IE00B4L5Y983:
     name: "iShares Core MSCI World UCITS"
     assetClass:
-        name: "US Total Market"
-        category: "Stocks"
+      name: "US Total Market"
+      category: "Stocks"
     transactions:
       - date: "2024-01-15"
         quantity: 10
@@ -125,15 +129,13 @@ etfs:
   LU0478205379:
     name: "Xtrackers II EUR Corporate Bond UCITS ETF 1C"
     assetClass:
-        name: "US Aggregate Bonds"
-        category: "Bonds"
+      name: "US Aggregate Bonds"
+      category: "Bonds"
     transactions:
       - date: "2024-01-15"
         quantity: 20
         price: 200
 ```
-
-
 
 ### Portfolio File Structure
 
@@ -169,6 +171,7 @@ etfs:
    - Benefits: Automatic backups, cross-device access, file versioning
 
 **Security tips:**
+
 - Never commit your portfolio file to a public repository
 - Consider encrypting sensitive financial data
 - Keep regular backups in multiple locations
@@ -193,6 +196,7 @@ The dashboard displays several key sections:
 ### Rebalancing
 
 The drift cards will show:
+
 - **Green**: Within acceptable drift range
 - **Yellow/Red**: Exceeds drift threshold, rebalancing recommended
 - Suggested amounts to buy/sell for each asset class or country
@@ -231,6 +235,7 @@ The drift cards will show:
 ## Data Sources
 
 The application fetches real-time ETF prices from:
+
 - **Borsa Italiana API**: For ETFs listed on the Italian stock exchange
 - **JustETF API**: For other European ETFs
 

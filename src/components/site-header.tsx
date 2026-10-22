@@ -14,11 +14,11 @@ export function SiteHeader() {
     const file = event.target.files?.[0]
     if (file) {
       parseFile(file)
-        .then(portfolio => {
+        .then((portfolio) => {
           setPortfolio(portfolio)
           Cache.savePortfolio(portfolio)
         })
-        .catch(error => {
+        .catch((error) => {
           // TODO: show an error message
           console.error(error)
         })
