@@ -26,6 +26,10 @@ export function assetClassCategoryToString(assetClassCategory: string) {
       return "azioni"
     case "bonds":
       return "obbligazioni"
+    case "bonds-corporate":
+      return "obbligazioni soc"
+    case "bonds-government":
+      return "obbligazioni gov"
     default:
       return assetClassCategory
   }
@@ -41,4 +45,8 @@ export function convertDt(dt: string) {
   const day = part1.substring(6, 8)
   const isoDate = `${year}-${month}-${day}`
   return isoDate
+}
+
+export function isNotUndefined<T>(arg: T | undefined): arg is T {
+  return arg !== undefined
 }

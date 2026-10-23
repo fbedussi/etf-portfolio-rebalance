@@ -21,7 +21,7 @@ import {
   useTargetAssetClassAllocation,
 } from "@/store"
 import type { AssetClassCategory } from "@/model"
-import { assetClassCategoryToString } from "@/lib/utils"
+import { assetClassCategoryToString, isNotUndefined } from "@/lib/utils"
 
 export function ChartPie() {
   const targetAssetClassAllocation = useTargetAssetClassAllocation()
@@ -56,21 +56,21 @@ export function ChartPie() {
     ),
   } satisfies ChartConfig
 
-  const targetAllocationData = Object.entries(targetAssetClassAllocation).map(
-    ([assetClass, target]) => ({
+  const targetAllocationData = assetClasses.map(
+    assetClass => (targetAssetClassAllocation[assetClass] ? {
       assetClass,
-      target,
+      target: targetAssetClassAllocation[assetClass],
       fill: `var(--${colors[assetClass]})`,
-    }),
-  )
+    }: undefined),
+  ).filter(isNotUndefined)
 
-  const currentAllocationData = Object.entries(currentAssetClassAllocation).map(
-    ([assetClass, actual]) => ({
+  const currentAllocationData = assetClasses.map(
+    assetClass => (currentAssetClassAllocation[assetClass] ? {
       assetClass,
-      actual,
+      actual: currentAssetClassAllocation[assetClass],
       fill: `var(--${colors[assetClass]})`,
-    }),
-  )
+    }: undefined),
+  ).filter(isNotUndefined)
   return (
     <Card className="flex flex-col">
       <CardHeader className="items-center pb-0">

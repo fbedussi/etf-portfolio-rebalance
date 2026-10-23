@@ -40,24 +40,24 @@ export const setEftQuantity = (isin: string, quantity: number) =>
     return !state.portfolio?.etfs[isin]
       ? state
       : {
-          portfolio: {
-            ...state.portfolio,
-            etfs: {
-              ...state.portfolio?.etfs,
-              [isin]: {
-                ...state.portfolio?.etfs[isin],
-                transactions:
-                  state.portfolio?.etfs[isin].transactions.concat([
-                    {
-                      quantity,
-                      price: state.prices[isin]?.price || 0,
-                      date: dayjs().format("YYYY-MM-DD"),
-                    },
-                  ]) || [],
-              },
+        portfolio: {
+          ...state.portfolio,
+          etfs: {
+            ...state.portfolio?.etfs,
+            [isin]: {
+              ...state.portfolio?.etfs[isin],
+              transactions:
+                state.portfolio?.etfs[isin].transactions.concat([
+                  {
+                    quantity,
+                    price: state.prices[isin]?.price || 0,
+                    date: dayjs().format("YYYY-MM-DD"),
+                  },
+                ]) || [],
             },
           },
-        }
+        },
+      }
   })
 
 const selectPortfolio = (state: State) => state.portfolio
