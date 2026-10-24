@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from "react"
+import { useEffect, useMemo } from "react"
 import * as Store from "./store"
 import * as Cache from "./services/cacheService"
 import * as Api from "./services/apiService"
@@ -7,13 +7,14 @@ import type { CurrentPrice } from "./model"
 
 const ONE_DAY = 24 * 60 * 60 * 1000
 
+let loadingPortfolio = false
+
 export function useLoadPortfolio() {
-  const loadingPortfolio = useRef(false)
 
   useEffect(() => {
-    if (loadingPortfolio.current) return
+    if (loadingPortfolio) return
 
-    loadingPortfolio.current = true
+    loadingPortfolio = true
 
     Cache.getPortfolios().then((cachedPortfolios) => {
       if (cachedPortfolios.length) {
@@ -22,6 +23,7 @@ export function useLoadPortfolio() {
     })
   }, [])
 }
+
 export function useLoadPrices() {
   const portfolio = Store.usePortfolio()
   const refreshPrices = Store.useRefreshPrices()
