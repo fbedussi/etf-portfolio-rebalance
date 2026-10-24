@@ -53,7 +53,8 @@ export async function parseFile(file: File): Promise<Portfolio> {
       (result, [isin, etf]) => {
         result[isin] = {
           ...etf,
-          transactions: etf.transactions ?? [],
+          transactions:
+            etf.transactions?.map((transation) => ({ ...transation, type: "real" })) ?? [],
           isin,
           dataSource: etf.dataSource ?? "borsaitaliana",
           countries: etf.countries ?? {},

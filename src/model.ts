@@ -34,6 +34,7 @@ export type Transaction = {
   date: IsoDate
   quantity: number // positive = buy, negative = sell
   price: number // price per unit in portfolio currency
+  type: "real" | "virtual"
 }
 
 export type CurrentPrices = Record<Isin, CurrentPrice>

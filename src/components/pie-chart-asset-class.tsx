@@ -56,21 +56,29 @@ export function ChartPie() {
     ),
   } satisfies ChartConfig
 
-  const targetAllocationData = assetClasses.map(
-    assetClass => (targetAssetClassAllocation[assetClass] ? {
-      assetClass,
-      target: targetAssetClassAllocation[assetClass],
-      fill: `var(--${colors[assetClass]})`,
-    }: undefined),
-  ).filter(isNotUndefined)
+  const targetAllocationData = assetClasses
+    .map((assetClass) =>
+      targetAssetClassAllocation[assetClass]
+        ? {
+            assetClass,
+            target: targetAssetClassAllocation[assetClass],
+            fill: `var(--${colors[assetClass]})`,
+          }
+        : undefined,
+    )
+    .filter(isNotUndefined)
 
-  const currentAllocationData = assetClasses.map(
-    assetClass => (currentAssetClassAllocation[assetClass] ? {
-      assetClass,
-      actual: currentAssetClassAllocation[assetClass],
-      fill: `var(--${colors[assetClass]})`,
-    }: undefined),
-  ).filter(isNotUndefined)
+  const currentAllocationData = assetClasses
+    .map((assetClass) =>
+      currentAssetClassAllocation[assetClass]
+        ? {
+            assetClass,
+            actual: currentAssetClassAllocation[assetClass],
+            fill: `var(--${colors[assetClass]})`,
+          }
+        : undefined,
+    )
+    .filter(isNotUndefined)
   return (
     <Card className="flex flex-col">
       <CardHeader className="items-center pb-0">

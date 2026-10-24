@@ -1,5 +1,5 @@
 import { create } from "zustand"
-import type { CurrentPrices, Portfolio } from "./model"
+import type { CurrentPrices, ETF, Portfolio } from "./model"
 import { devtools } from "zustand/middleware"
 import { useShallow } from "zustand/shallow"
 import { createSelector } from "reselect"
@@ -24,12 +24,14 @@ type State = {
   portfolio: Portfolio | null
   prices: CurrentPrices
   refreshPrices?: boolean
+  showOnlyRealTransactions: boolean
 }
 
 export const useStore = create<State>()(
   devtools(() => ({
     portfolio: null,
     prices: {},
+    showOnlyRealTransactions: false,
   })),
 )
 
@@ -52,6 +54,7 @@ export const setEftQuantity = (isin: string, quantity: number) =>
                     quantity,
                     price: state.prices[isin]?.price || 0,
                     date: dayjs().format("YYYY-MM-DD"),
+                    type: "virtual",
                   },
                 ]) || [],
             },
@@ -60,7 +63,23 @@ export const setEftQuantity = (isin: string, quantity: number) =>
       }
   })
 
-const selectPortfolio = (state: State) => state.portfolio
+const selectShowOnlyRealTransactions = (state: State) => state.showOnlyRealTransactions
+
+const selectPortfolio = createSelector(
+  selectShowOnlyRealTransactions,
+  (state: State) => state.portfolio,
+  (showOnlyRealTransactions, portfolio) => {
+    if (showOnlyRealTransactions) {
+      const clonedPortfolio = structuredClone(portfolio)
+      Object.values(clonedPortfolio?.etfs || {}).forEach((etf) => {
+        etf.transactions = etf.transactions.filter((transaction) => transaction.type === "real")
+      })
+      return clonedPortfolio
+    } else {
+      return portfolio
+    }
+  },
+)
 
 export const usePortfolio = () => useStore(selectPortfolio)
 
@@ -225,3 +244,34 @@ export const useCountryColors = () =>
   )
 
 export const useRefreshPrices = () => useStore((state: State) => state.refreshPrices)
+
+export const useThereAreVirtualTrasactions = () =>
+  useStore((state: State) =>
+    Object.values(state.portfolio?.etfs || {}).some((etf) =>
+      etf.transactions.some((transaction) => transaction.type === "virtual"),
+    ),
+  )
+
+export const setShowOnlyRealTransaction = (showOnlyRealTransactions: boolean) => {
+  useStore.setState((state) => ({ ...state, showOnlyRealTransactions }))
+}
+
+export const useShowOnlyRealTransactions = () => useStore(selectShowOnlyRealTransactions)
+
+export const deleteVirtualData = () => {
+  useStore.setState((state): State => ({
+    ...state,
+    portfolio: state?.portfolio ? {
+      ...state.portfolio,
+      etfs: Object.entries(state.portfolio.etfs).reduce((result, [isin, etf]) => {
+        result[isin] = {
+          ...etf,
+          transactions: etf.transactions.filter(transaction => transaction.type === 'real')
+        }
+        return result
+      }, {} as Record<string, ETF>)
+    } : null,
+    showOnlyRealTransactions: false
+  }))
+
+}
