@@ -63,17 +63,19 @@ test("should show the portfolio data after uploading a file", async ({ page }) =
 
 test("after a portfolio is uploaded the prices are fetched", async ({ page }) => {
   // Arrange
-  await page.route('https://grafici.borsaitaliana.it/api/instruments/**', async route => {
+  await page.route("https://grafici.borsaitaliana.it/api/instruments/**", async (route) => {
     await route.fulfill({
       json: {
         history: {
-          historyDt: [{
-            closePx: 100,
-            dt: '20251024',
-          }]
-        }
-      }
-    });
+          historyDt: [
+            {
+              closePx: 100,
+              dt: "20251024",
+            },
+          ],
+        },
+      },
+    })
   })
 
   await page.goto("http://localhost:5173")

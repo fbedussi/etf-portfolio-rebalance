@@ -42,25 +42,25 @@ export const setEftQuantity = (isin: string, quantity: number) =>
     return !state.portfolio?.etfs[isin]
       ? state
       : {
-        portfolio: {
-          ...state.portfolio,
-          etfs: {
-            ...state.portfolio?.etfs,
-            [isin]: {
-              ...state.portfolio?.etfs[isin],
-              transactions:
-                state.portfolio?.etfs[isin].transactions.concat([
-                  {
-                    quantity,
-                    price: state.prices[isin]?.price || 0,
-                    date: dayjs().format("YYYY-MM-DD"),
-                    type: "virtual",
-                  },
-                ]) || [],
+          portfolio: {
+            ...state.portfolio,
+            etfs: {
+              ...state.portfolio?.etfs,
+              [isin]: {
+                ...state.portfolio?.etfs[isin],
+                transactions:
+                  state.portfolio?.etfs[isin].transactions.concat([
+                    {
+                      quantity,
+                      price: state.prices[isin]?.price || 0,
+                      date: dayjs().format("YYYY-MM-DD"),
+                      type: "virtual",
+                    },
+                  ]) || [],
+              },
             },
           },
-        },
-      }
+        }
   })
 
 const selectShowOnlyRealTransactions = (state: State) => state.showOnlyRealTransactions
@@ -259,19 +259,51 @@ export const setShowOnlyRealTransaction = (showOnlyRealTransactions: boolean) =>
 export const useShowOnlyRealTransactions = () => useStore(selectShowOnlyRealTransactions)
 
 export const deleteVirtualData = () => {
-  useStore.setState((state): State => ({
-    ...state,
-    portfolio: state?.portfolio ? {
-      ...state.portfolio,
-      etfs: Object.entries(state.portfolio.etfs).reduce((result, [isin, etf]) => {
-        result[isin] = {
-          ...etf,
-          transactions: etf.transactions.filter(transaction => transaction.type === 'real')
-        }
-        return result
-      }, {} as Record<string, ETF>)
-    } : null,
-    showOnlyRealTransactions: false
-  }))
-
+  useStore.setState(
+    (state): State => ({
+      ...state,
+      portfolio: state?.portfolio
+        ? {
+            ...state.portfolio,
+            etfs: Object.entries(state.portfolio.etfs).reduce(
+              (result, [isin, etf]) => {
+                result[isin] = {
+                  ...etf,
+                  transactions: etf.transactions.filter(
+                    (transaction) => transaction.type === "real",
+                  ),
+                }
+                return result
+              },
+              {} as Record<string, ETF>,
+            ),
+          }
+        : null,
+      showOnlyRealTransactions: false,
+    }),
+  )
 }
+
+export const useGetOrder = () =>
+  useStore(
+    createSelector(
+      (state: State) => state.portfolio?.etfs,
+      (etfs) => {
+        return Object.entries(etfs || []).reduce(
+          (result, [isin, etf]) => {
+            const virtualTransactions = etf.transactions.filter(
+              (transaction) => transaction.type === "virtual",
+            )
+            if (virtualTransactions.length) {
+              result[isin] = {
+                ...etf,
+                transactions: virtualTransactions,
+              }
+            }
+            return result
+          },
+          {} as Record<string, ETF>,
+        )
+      },
+    ),
+  )

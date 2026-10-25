@@ -10,7 +10,6 @@ const ONE_DAY = 24 * 60 * 60 * 1000
 let loadingPortfolio = false
 
 export function useLoadPortfolio() {
-
   useEffect(() => {
     if (loadingPortfolio) return
 

@@ -5,7 +5,6 @@ import { setPortfolio, usePortfolio } from "@/store"
 import { CompassIcon, FileUpIcon } from "lucide-react"
 import { useRef } from "react"
 import * as Cache from "@/services/cacheService"
-import { VirtualDataToolbox } from "./virtual-data-toolbox"
 
 export function SiteHeader() {
   const portfolio = usePortfolio()
@@ -39,9 +38,6 @@ export function SiteHeader() {
           <span className="hidden md:inline">Portafoglio corrente: </span>
           <span data-test-id="portfolio-name">{portfolio?.name}</span>
         </h1>
-
-        <Separator orientation="vertical" className="mx-2 data-[orientation=vertical]:h-4" />
-        <VirtualDataToolbox />
 
         <div className="ml-auto flex items-center gap-2">
           <input

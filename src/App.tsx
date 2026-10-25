@@ -7,6 +7,7 @@ import { PieChartCountry } from "./components/pie-chart-country"
 import { ValueCard } from "./components/value-card"
 import { DriftCard } from "./components/drift-card-asset-class"
 import { ChartPie } from "./components/pie-chart-asset-class"
+import { VirtualDataToolbox } from "./components/virtual-data-toolbox"
 
 export default function App() {
   useLoadPortfolio()
@@ -35,6 +36,9 @@ export default function App() {
                 <PieChartCountry />
               </div>
               <DataTable />
+
+              <VirtualDataToolbox />
+
               <div className="*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-1 gap-4 px-4 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs lg:px-6 @xl/main:grid-cols-2">
                 <ValueCard />
                 <ChartAreaInteractive />
