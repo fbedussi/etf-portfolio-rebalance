@@ -1,13 +1,13 @@
 import { ChartAreaInteractive } from "@/components/chart-area-interactive"
 import { DataTable } from "@/components/data-table"
 import { SiteHeader } from "@/components/site-header"
-import { useLoadPortfolio, useLoadPrices } from "./dataLoader"
+import { DriftCard } from "./components/drift-card-asset-class"
 import { DriftCardCountry } from "./components/drift-card-country"
+import { ChartPie } from "./components/pie-chart-asset-class"
 import { PieChartCountry } from "./components/pie-chart-country"
 import { ValueCard } from "./components/value-card"
-import { DriftCard } from "./components/drift-card-asset-class"
-import { ChartPie } from "./components/pie-chart-asset-class"
 import { VirtualDataToolbox } from "./components/virtual-data-toolbox"
+import { useLoadPortfolio, useLoadPrices } from "./dataLoader"
 
 export default function App() {
   useLoadPortfolio()

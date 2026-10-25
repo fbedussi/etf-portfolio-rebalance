@@ -1,22 +1,20 @@
 import * as React from "react"
+import { useMemo } from "react"
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts"
-
-import { useIsMobile } from "@/hooks/use-mobile"
 import { Card, CardAction, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
+  type ChartConfig,
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
-  type ChartConfig,
 } from "@/components/ui/chart"
-
+import { useIsMobile } from "@/hooks/use-mobile"
+import { quantityAtDate } from "@/lib/portfolio"
 import { usePortfolio, usePrices } from "@/store"
-import { ToggleGroup, ToggleGroupItem } from "./ui/toggle-group"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select"
 import { Checkbox } from "./ui/checkbox"
 import { Label } from "./ui/label"
-import { useMemo } from "react"
-import { quantityAtDate } from "@/lib/portfolio"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select"
+import { ToggleGroup, ToggleGroupItem } from "./ui/toggle-group"
 
 function isWorkingDay(date: string) {
   const d = new Date(date)

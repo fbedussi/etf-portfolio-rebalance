@@ -9,13 +9,13 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import {
+  type ChartConfig,
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
-  type ChartConfig,
 } from "@/components/ui/chart"
-import { useCountryColors, useCurrentCountryAllocation, useTargetCountryAllocation } from "@/store"
 import type { AssetClassCategory } from "@/model"
+import { useCountryColors, useCurrentCountryAllocation, useTargetCountryAllocation } from "@/store"
 import { CountryTable } from "./country-table"
 
 export function PieChartCountry() {

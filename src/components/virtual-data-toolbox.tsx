@@ -1,13 +1,13 @@
+import { assetClassCategoryToString, formatMoney } from "@/lib/utils"
 import {
   deleteVirtualData,
   useAssetClassColors,
   useGetOrder,
   useThereAreVirtualTrasactions,
 } from "@/store"
+import { Badge } from "./ui/badge"
 import { Button } from "./ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table"
-import { Badge } from "./ui/badge"
-import { assetClassCategoryToString, formatMoney } from "@/lib/utils"
 
 export function VirtualDataToolbox() {
   const thereAreVirtualTransactios = useThereAreVirtualTrasactions()

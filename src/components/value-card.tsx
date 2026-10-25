@@ -1,5 +1,5 @@
 import { IconTrendingDown, IconTrendingUp } from "@tabler/icons-react"
-
+import { RefreshCcwIcon } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import {
   Card,
@@ -10,15 +10,14 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import { RefreshCcwIcon } from "lucide-react"
-import { Button } from "./ui/button"
-import {
-  useCurrentPortfolioValue,
-  useCurrentPortfolioCost,
-  useCurrentPortfolioValueDate,
-  setRefreshPrices,
-} from "@/store"
 import { formatDate, formatMoney } from "@/lib/utils"
+import {
+  setRefreshPrices,
+  useCurrentPortfolioCost,
+  useCurrentPortfolioValue,
+  useCurrentPortfolioValueDate,
+} from "@/store"
+import { Button } from "./ui/button"
 
 export function ValueCard() {
   const value = useCurrentPortfolioValue()

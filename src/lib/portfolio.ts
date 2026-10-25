@@ -1,3 +1,4 @@
+import dayjs from "dayjs"
 import type {
   AssetClassCategory,
   Country,
@@ -8,7 +9,6 @@ import type {
   SIP,
   Transaction,
 } from "@/model"
-import dayjs from "dayjs"
 
 export function getDriftDataByAssetClass(
   targetAllocation: Record<AssetClassCategory, number> | undefined,

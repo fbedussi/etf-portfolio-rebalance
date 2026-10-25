@@ -1,4 +1,13 @@
+import {
+  AlertCircleIcon,
+  CircleAlertIcon,
+  MoveDownIcon,
+  MoveUpIcon,
+  ThumbsUpIcon,
+} from "lucide-react"
+import { useState } from "react"
 import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import {
   Table,
   TableBody,
@@ -7,19 +16,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import {
-  AlertCircleIcon,
-  CircleAlertIcon,
-  MoveDownIcon,
-  MoveUpIcon,
-  ThumbsUpIcon,
-} from "lucide-react"
-import { useDriftData, useMaxDrift } from "@/store"
 import { assetClassCategoryToString, formatMoney } from "@/lib/utils"
-import { Label } from "./ui/label"
-import { useState } from "react"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { useDriftData, useMaxDrift } from "@/store"
 import { Alert, AlertDescription, AlertTitle } from "./ui/alert"
+import { Label } from "./ui/label"
 
 export function DriftCard() {
   const maxDrift = useMaxDrift()

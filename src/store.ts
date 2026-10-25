@@ -1,8 +1,8 @@
+import dayjs from "dayjs"
+import { createSelector } from "reselect"
 import { create } from "zustand"
-import type { CurrentPrices, ETF, Portfolio } from "./model"
 import { devtools } from "zustand/middleware"
 import { useShallow } from "zustand/shallow"
-import { createSelector } from "reselect"
 import {
   calculateAssetClassColors,
   calculateCountryColors,
@@ -18,7 +18,7 @@ import {
   calculatePricesHistoryMap,
   getDriftDataByAssetClass,
 } from "./lib/portfolio"
-import dayjs from "dayjs"
+import type { CurrentPrices, ETF, Portfolio } from "./model"
 
 type State = {
   portfolio: Portfolio | null

@@ -9,19 +9,19 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import {
+  type ChartConfig,
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
-  type ChartConfig,
 } from "@/components/ui/chart"
-import { AssetAllocationTable } from "./asset-allocation-table"
+import { assetClassCategoryToString, isNotUndefined } from "@/lib/utils"
+import type { AssetClassCategory } from "@/model"
 import {
   useAssetClassColors,
   useCurrentAssetClassAllocation,
   useTargetAssetClassAllocation,
 } from "@/store"
-import type { AssetClassCategory } from "@/model"
-import { assetClassCategoryToString, isNotUndefined } from "@/lib/utils"
+import { AssetAllocationTable } from "./asset-allocation-table"
 
 export function ChartPie() {
   const targetAssetClassAllocation = useTargetAssetClassAllocation()

@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test"
+import { expect, test } from "@playwright/test"
 
 test("should open file selection dialog when open-file-btn is clicked", async ({ page }) => {
   // Navigate to the app

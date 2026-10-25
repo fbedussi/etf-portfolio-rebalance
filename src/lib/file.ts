@@ -1,6 +1,6 @@
-import type { ETF, Isin, Portfolio } from "../model.ts"
 import yamlParser from "js-yaml"
 import * as z from "zod"
+import type { ETF, Isin, Portfolio } from "../model.ts"
 
 const AssetClassSchema = z.object({
   name: z.string(),

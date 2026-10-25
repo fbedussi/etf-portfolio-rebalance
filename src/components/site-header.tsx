@@ -1,10 +1,10 @@
+import { CompassIcon, FileUpIcon } from "lucide-react"
+import { useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { parseFile } from "@/lib/file"
-import { setPortfolio, usePortfolio } from "@/store"
-import { CompassIcon, FileUpIcon } from "lucide-react"
-import { useRef } from "react"
 import * as Cache from "@/services/cacheService"
+import { setPortfolio, usePortfolio } from "@/store"
 
 export function SiteHeader() {
   const portfolio = usePortfolio()
