@@ -10,6 +10,8 @@ import {
 import { assetClassCategoryToString, formatMoney } from "@/lib/utils"
 import { setEftQuantity, useAssetClassColors, useCurrentEtfData } from "@/store"
 import { Input } from "./ui/input"
+import type { SIP } from "@/model"
+import { IconCircle } from "@tabler/icons-react"
 
 function Row({
   name,
@@ -18,6 +20,8 @@ function Row({
   quantity,
   paidValue,
   currentValue,
+  currentPrice,
+  sip,
 }: {
   name: string
   isin: string
@@ -25,6 +29,8 @@ function Row({
   quantity: number
   paidValue: number
   currentValue: number
+  currentPrice: number
+  sip?: SIP
 }) {
   const colors = useAssetClassColors()
 
@@ -47,6 +53,7 @@ function Row({
 
   return (
     <TableRow className="relative z-0">
+      <TableCell>{sip && `🟢`}</TableCell>
       <TableCell>
         <a
           href={`https://www.borsaitaliana.it/borsa/etf/scheda/${isin}.html?lang=it`}
@@ -74,12 +81,13 @@ function Row({
       </TableCell>
       <TableCell>{formatMoney(paidValue)}</TableCell>
       <TableCell>{formatMoney(currentValue)}</TableCell>
+      <TableCell>{formatMoney(currentPrice)}</TableCell>
       <TableCell>
         <Badge
           variant="outline"
           className={`px-1.5 ${currentValueProfit > 0 ? "bg-green-500" : "bg-red-500 text-white"}`}
         >
-          {currentValueProfit.toFixed(2)} €
+          {currentValueProfit.toFixed(2)} € / {(currentValueProfit / paidValue * 100).toFixed(1)}%
         </Badge>
       </TableCell>
     </TableRow>
@@ -95,12 +103,14 @@ export function DataTable() {
         <Table>
           <TableHeader className="bg-muted sticky top-0 z-10">
             <TableRow>
+              <TableHead>PAC</TableHead>
               <TableHead>Nome</TableHead>
               <TableHead>Isin</TableHead>
               <TableHead>Asset class</TableHead>
               <TableHead>Quantità</TableHead>
               <TableHead>Valore acquisto</TableHead>
               <TableHead>Valore corrente</TableHead>
+              <TableHead>Prezzo corrente</TableHead>
               <TableHead>Profit/Loss</TableHead>
             </TableRow>
           </TableHeader>
