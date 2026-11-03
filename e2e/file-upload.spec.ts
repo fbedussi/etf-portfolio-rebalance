@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test"
 
 test("should open file selection dialog when open-file-btn is clicked", async ({ page }) => {
   // Navigate to the app
-  await page.goto("http://localhost:5173")
+  await page.goto("/")
 
   // Set up a promise to listen for the file chooser dialog
   const fileChooserPromise = page.waitForEvent("filechooser")
@@ -19,7 +19,7 @@ test("should open file selection dialog when open-file-btn is clicked", async ({
 
 test("should only accept YAML files in the file dialog", async ({ page }) => {
   // Navigate to the app
-  await page.goto("http://localhost:5173")
+  await page.goto("/")
 
   // Wait for the button to be visible
   const openFileBtn = page.locator('[data-test-id="open-file-btn"]')
@@ -44,7 +44,7 @@ test("should only accept YAML files in the file dialog", async ({ page }) => {
 
 test("should show the portfolio data after uploading a file", async ({ page }) => {
   // Navigate to the app
-  await page.goto("http://localhost:5173")
+  await page.goto("/")
 
   const openFileBtn = page.locator('[data-test-id="open-file-btn"]')
 
@@ -78,7 +78,7 @@ test("after a portfolio is uploaded the prices are fetched", async ({ page }) =>
     })
   })
 
-  await page.goto("http://localhost:5173")
+  await page.goto("/")
   const openFileBtn = page.locator('[data-test-id="open-file-btn"]')
   // Start waiting for file chooser before clicking
   const fileChooserPromise = page.waitForEvent("filechooser")
@@ -95,7 +95,7 @@ test("after a portfolio is uploaded the prices are fetched", async ({ page }) =>
 
 test("the uploaded portfolio persists across page reloads", async ({ page }) => {
   // Arrange
-  await page.goto("http://localhost:5173")
+  await page.goto("/")
   const openFileBtn = page.locator('[data-test-id="open-file-btn"]')
   const fileChooserPromise = page.waitForEvent("filechooser")
   await openFileBtn.click()
