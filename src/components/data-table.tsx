@@ -8,10 +8,9 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { assetClassCategoryToString, formatMoney } from "@/lib/utils"
+import type { SIP } from "@/model"
 import { setEftQuantity, useAssetClassColors, useCurrentEtfData } from "@/store"
 import { Input } from "./ui/input"
-import type { SIP } from "@/model"
-import { IconCircle } from "@tabler/icons-react"
 
 function Row({
   name,
@@ -87,7 +86,7 @@ function Row({
           variant="outline"
           className={`px-1.5 ${currentValueProfit > 0 ? "bg-green-500" : "bg-red-500 text-white"}`}
         >
-          {currentValueProfit.toFixed(2)} € / {(currentValueProfit / paidValue * 100).toFixed(1)}%
+          {currentValueProfit.toFixed(2)} € / {((currentValueProfit / paidValue) * 100).toFixed(1)}%
         </Badge>
       </TableCell>
     </TableRow>

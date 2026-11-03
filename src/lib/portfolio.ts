@@ -79,14 +79,14 @@ export function getDriftDataByAssetClass(
   const newPorfolioValue_buyStrategy =
     isItPossibleToCompensateWithBuyStrategy && assetClassWithHighestDrift
       ? (assetClassWithHighestDrift.currentValue /
-        assetClassWithHighestDrift.targetAllocationPercentage) *
-      100
+          assetClassWithHighestDrift.targetAllocationPercentage) *
+        100
       : portfolioValue
 
   const newPorfolioValue_sellStrategy = assetClassWithLowestDrift
     ? (assetClassWithLowestDrift.currentValue /
-      assetClassWithLowestDrift.targetAllocationPercentage) *
-    100
+        assetClassWithLowestDrift.targetAllocationPercentage) *
+      100
     : portfolioValue
 
   return drifts.map(
@@ -96,19 +96,19 @@ export function getDriftDataByAssetClass(
       percentage,
       amountToBuyToCompensate: isItPossibleToCompensateWithBuyStrategy
         ? Number(
-          (
-            (newPorfolioValue_buyStrategy / 100) * targetAllocationPercentage -
-            currentValue
-          ).toFixed(2),
-        )
+            (
+              (newPorfolioValue_buyStrategy / 100) * targetAllocationPercentage -
+              currentValue
+            ).toFixed(2),
+          )
         : null,
       amountToSellToCompensate: isItPossibleToCompensateWithSellStrategy
         ? Number(
-          (
-            currentValue -
-            (newPorfolioValue_sellStrategy / 100) * targetAllocationPercentage
-          ).toFixed(2),
-        )
+            (
+              currentValue -
+              (newPorfolioValue_sellStrategy / 100) * targetAllocationPercentage
+            ).toFixed(2),
+          )
         : null,
     }),
   )
@@ -301,7 +301,7 @@ export const calculateCurrentEtfData = (
       paidValue: calculateEtfCost(etf, pricesHistoryMap[etf.isin], today),
       currentValue: quantity * currentPrice,
       currentPrice,
-      sip: etf.sip
+      sip: etf.sip,
     }
   })
 }
@@ -432,13 +432,13 @@ export const calculateCountryDriftData = (
   const newPorfolioValue_buyStrategy =
     isItPossibleToCompensateWithBuyStrategy && countryWithHighestDrift
       ? (countryWithHighestDrift.currentValue /
-        countryWithHighestDrift.targetAllocationPercentage) *
-      100
+          countryWithHighestDrift.targetAllocationPercentage) *
+        100
       : currentPortfolioValue
 
   const newPorfolioValue_sellStrategy = countryWithLowestDrift
     ? (countryWithLowestDrift.currentValue / countryWithLowestDrift.targetAllocationPercentage) *
-    100
+      100
     : currentPortfolioValue
 
   return drifts.map(
@@ -448,19 +448,19 @@ export const calculateCountryDriftData = (
       percentage,
       amountToBuyToCompensate: isItPossibleToCompensateWithBuyStrategy
         ? Number(
-          (
-            (newPorfolioValue_buyStrategy / 100) * targetAllocationPercentage -
-            currentValue
-          ).toFixed(2),
-        )
+            (
+              (newPorfolioValue_buyStrategy / 100) * targetAllocationPercentage -
+              currentValue
+            ).toFixed(2),
+          )
         : null,
       amountToSellToCompensate: isItPossibleToCompensateWithSellStrategy
         ? Number(
-          (
-            currentValue -
-            (newPorfolioValue_sellStrategy / 100) * targetAllocationPercentage
-          ).toFixed(2),
-        )
+            (
+              currentValue -
+              (newPorfolioValue_sellStrategy / 100) * targetAllocationPercentage
+            ).toFixed(2),
+          )
         : null,
     }),
   )
